@@ -3,8 +3,7 @@
     <el-container>
       <el-header>
         <div class="header-content">
-          <h1>🔍 智能合约数据分析系统</h1>
-          <p>基于OKX数据的智能钱包排行榜分析</p>
+          <h1>🔍 代币分析</h1>
         </div>
       </el-header>
       
