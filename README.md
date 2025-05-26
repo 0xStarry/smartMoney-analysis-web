@@ -234,7 +234,7 @@ src/
 - **UI组件库**: Vuetify 3 + Material Design
 - **构建工具**: Vite
 - **HTTP客户端**: Axios
-- **部署平台**: Cloudflare Workers
+- **部署平台**: Vercel / Cloudflare Workers
 
 ## 本地开发
 
@@ -265,28 +265,32 @@ npm run build
 
 ## 部署
 
-### Cloudflare Workers 部署
+### Vercel 部署（推荐）
 
-本项目已配置为通过GitHub集成自动部署到Cloudflare Workers，获得全球边缘计算能力。
+本项目已配置为可以部署到Vercel，获得全球CDN和自动部署能力。
 
-#### 自动部署
+#### 快速部署
 
-```bash
-# 推送代码即可自动部署
-git add .
-git commit -m "更新功能"
-git push origin main
+1. **连接GitHub仓库到Vercel**
+   - 访问 [Vercel Dashboard](https://vercel.com/dashboard)
+   - 点击 "New Project" 并选择你的GitHub仓库
 
-# Cloudflare会自动构建和部署
-```
+2. **自动部署**
+   ```bash
+   # 推送代码即可自动部署
+   git add .
+   git commit -m "更新功能"
+   git push origin main
+   ```
 
 #### 详细部署指南
 
-查看 [WORKERS_DEPLOYMENT.md](./WORKERS_DEPLOYMENT.md) 获取完整的部署指南。
+查看 [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) 获取完整的部署指南。
 
-### Cloudflare Pages 部署（备选）
+### 其他部署选项
 
-如果你更喜欢使用Pages，查看 [DEPLOYMENT.md](./DEPLOYMENT.md)。
+- **Cloudflare Workers**: 查看 [WORKERS_DEPLOYMENT.md](./WORKERS_DEPLOYMENT.md)
+- **Cloudflare Pages**: 查看 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ## API配置
 
@@ -296,7 +300,7 @@ git push origin main
 - `/priapi/*` → OKX Web3 API
 
 在开发环境中，这些请求会通过Vite代理转发。
-在生产环境中，Cloudflare Workers会处理这些代理。
+在生产环境中，Vercel或Cloudflare Workers会处理这些代理。
 
 ## 项目结构
 
@@ -305,14 +309,14 @@ src/
 ├── api/           # API接口封装
 ├── components/    # Vue组件
 ├── utils/         # 工具函数
-├── worker.js      # Cloudflare Workers脚本
+├── worker.js      # Cloudflare Workers脚本（可选）
 ├── App.vue        # 主应用组件
 └── main.js        # 应用入口
 
 public/
-├── _headers       # HTTP头部配置
-├── _redirects     # SPA路由重定向
 └── 404.html       # 错误页面
+
+vercel.json        # Vercel配置文件
 
 dist/              # 构建输出目录
 ```
@@ -332,23 +336,23 @@ dist/              # 构建输出目录
 ### API代理配置
 
 - 开发环境：修改 `vite.config.js` 中的proxy配置
-- 生产环境：修改 `src/worker.js` 中的代理逻辑
+- 生产环境：修改 `vercel.json` 中的rewrites配置
 
 ## 监控和日志
 
 ### 查看实时日志
 
-在Cloudflare Dashboard中：
-1. 进入 **Workers & Pages**
-2. 选择你的项目
-3. 点击 **Logs** 标签页
+在Vercel Dashboard中：
+1. 进入你的项目
+2. 点击 **Functions** 标签页
+3. 查看实时日志
 
 ### 查看部署状态
 
-在Cloudflare Dashboard中：
-1. 进入 **Workers & Pages**
-2. 选择你的项目
-3. 查看 **Deployments** 标签页
+在Vercel Dashboard中：
+1. 进入你的项目
+2. 查看 **Deployments** 标签页
+3. 点击部署查看详细日志
 
 ## 故障排除
 
@@ -359,8 +363,8 @@ dist/              # 构建输出目录
    - 检查构建输出是否正确
 
 2. **API请求失败**
-   - 检查代理配置
-   - 查看Cloudflare Dashboard中的日志
+   - 检查 `vercel.json` 中的代理配置
+   - 查看Vercel Dashboard中的部署日志
 
 3. **静态资源404**
    - 确认构建输出完整
@@ -369,8 +373,8 @@ dist/              # 构建输出目录
 ### 获取帮助
 
 - 查看 [Issues](../../issues)
-- 阅读 [Cloudflare Workers文档](https://developers.cloudflare.com/workers/)
-- 查看Cloudflare Dashboard中的部署日志
+- 阅读 [Vercel文档](https://vercel.com/docs)
+- 查看Vercel Dashboard中的部署日志
 
 ## 许可证
 

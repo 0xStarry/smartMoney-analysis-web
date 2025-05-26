@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { fa } from 'vuetify/locale'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  base: './',
+  base: '/',
   build: {
     outDir: 'dist',
     rollupOptions: {
@@ -38,7 +39,7 @@ export default defineConfig({
       },
       '/api': {
         target: 'https://api.young13.club',
-        changeOrigin: true,
+        changeOrigin: false,
         secure: false
       }
     }
