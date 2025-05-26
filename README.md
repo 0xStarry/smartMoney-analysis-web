@@ -218,3 +218,164 @@ src/
 ---
 
 **SmartMoney 分析平台** - 让数据分析更简单、更美观、更高效！ 🚀
+
+## 功能特性
+
+- 🔍 **代币地址查询** - 输入合约地址查询持有者信息
+- 📊 **盈利分析** - 显示钱包总盈利、盈利率等数据
+- 🏆 **排行榜** - 聪明钱地址排行榜，支持备注编辑
+- 💾 **数据保存** - 批量保存聪明钱地址到数据库
+- 📱 **响应式设计** - 支持桌面端和移动端
+- 🌙 **主题切换** - 支持明暗主题切换
+
+## 技术栈
+
+- **前端框架**: Vue 3 + Composition API
+- **UI组件库**: Vuetify 3 + Material Design
+- **构建工具**: Vite
+- **HTTP客户端**: Axios
+- **部署平台**: Cloudflare Workers
+
+## 本地开发
+
+### 环境要求
+
+- Node.js 18+
+- npm 8+
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 启动开发服务器
+
+```bash
+npm run dev
+```
+
+访问 http://localhost:5174
+
+### 构建项目
+
+```bash
+npm run build
+```
+
+## 部署
+
+### Cloudflare Workers 部署
+
+本项目已配置为通过GitHub集成自动部署到Cloudflare Workers，获得全球边缘计算能力。
+
+#### 自动部署
+
+```bash
+# 推送代码即可自动部署
+git add .
+git commit -m "更新功能"
+git push origin main
+
+# Cloudflare会自动构建和部署
+```
+
+#### 详细部署指南
+
+查看 [WORKERS_DEPLOYMENT.md](./WORKERS_DEPLOYMENT.md) 获取完整的部署指南。
+
+### Cloudflare Pages 部署（备选）
+
+如果你更喜欢使用Pages，查看 [DEPLOYMENT.md](./DEPLOYMENT.md)。
+
+## API配置
+
+项目支持以下API代理：
+
+- `/api/*` → 后端API服务器
+- `/priapi/*` → OKX Web3 API
+
+在开发环境中，这些请求会通过Vite代理转发。
+在生产环境中，Cloudflare Workers会处理这些代理。
+
+## 项目结构
+
+```
+src/
+├── api/           # API接口封装
+├── components/    # Vue组件
+├── utils/         # 工具函数
+├── worker.js      # Cloudflare Workers脚本
+├── App.vue        # 主应用组件
+└── main.js        # 应用入口
+
+public/
+├── _headers       # HTTP头部配置
+├── _redirects     # SPA路由重定向
+└── 404.html       # 错误页面
+
+dist/              # 构建输出目录
+```
+
+## 开发指南
+
+### 添加新功能
+
+1. 在 `src/api/` 中添加API接口
+2. 在 `src/App.vue` 中添加UI组件
+3. 更新相关的类型定义和文档
+
+### 样式定制
+
+项目使用Vuetify主题系统，可以在 `src/main.js` 中自定义主题颜色。
+
+### API代理配置
+
+- 开发环境：修改 `vite.config.js` 中的proxy配置
+- 生产环境：修改 `src/worker.js` 中的代理逻辑
+
+## 监控和日志
+
+### 查看实时日志
+
+在Cloudflare Dashboard中：
+1. 进入 **Workers & Pages**
+2. 选择你的项目
+3. 点击 **Logs** 标签页
+
+### 查看部署状态
+
+在Cloudflare Dashboard中：
+1. 进入 **Workers & Pages**
+2. 选择你的项目
+3. 查看 **Deployments** 标签页
+
+## 故障排除
+
+### 常见问题
+
+1. **模块解析错误**
+   - 确保使用相对路径 (`base: './'`)
+   - 检查构建输出是否正确
+
+2. **API请求失败**
+   - 检查代理配置
+   - 查看Cloudflare Dashboard中的日志
+
+3. **静态资源404**
+   - 确认构建输出完整
+   - 检查资源路径
+
+### 获取帮助
+
+- 查看 [Issues](../../issues)
+- 阅读 [Cloudflare Workers文档](https://developers.cloudflare.com/workers/)
+- 查看Cloudflare Dashboard中的部署日志
+
+## 许可证
+
+MIT License
+
+## 贡献
+
+欢迎提交Issue和Pull Request！

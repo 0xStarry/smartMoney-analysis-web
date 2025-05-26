@@ -4,7 +4,31 @@ import vue from '@vitejs/plugin-vue'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  base: '/',
+  base: './',
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vue: ['vue'],
+          vuetify: ['vuetify'],
+          axios: ['axios']
+        }
+      }
+    },
+    target: 'es2015',
+    minify: 'esbuild',
+    sourcemap: false
+  },
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
+  },
+  define: {
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false
+  },
   server: {
     proxy: {
       '/priapi': {
