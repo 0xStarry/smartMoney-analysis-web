@@ -1,12 +1,8 @@
 <template>
   <v-app>
     <!-- 头部导航 -->
-    <v-app-bar 
-      :elevation="2" 
-      class="app-header"
-      :color="theme.global.current.value.dark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)'"
-      height="80"
-    >
+    <v-app-bar :elevation="2" class="app-header"
+      :color="theme.global.current.value.dark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)'" height="80">
       <v-container class="d-flex align-center justify-space-between pa-0">
         <div class="d-flex align-center">
           <div class="logo-icon me-4">💎</div>
@@ -16,24 +12,15 @@
         </div>
         <div class="d-flex align-center gap-2">
           <!-- 排行榜按钮 -->
-          <v-btn
-            color="primary"
-            variant="outlined"
-            prepend-icon="mdi-trophy"
-            @click="openRankingDialog"
-            class="ranking-btn"
-          >
+          <v-btn color="primary" variant="outlined" prepend-icon="mdi-trophy" @click="openRankingDialog"
+            class="ranking-btn">
             <span class="btn-text">排行榜</span>
           </v-btn>
-          
+
           <!-- 主题切换按钮 -->
-          <v-btn 
-            :icon="theme.global.current.value.dark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'" 
-            variant="text" 
-            @click="toggleTheme"
-            class="theme-btn"
-            :title="theme.global.current.value.dark ? '切换到亮色模式' : '切换到暗色模式'"
-          />
+          <v-btn :icon="theme.global.current.value.dark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"
+            variant="text" @click="toggleTheme" class="theme-btn"
+            :title="theme.global.current.value.dark ? '切换到亮色模式' : '切换到暗色模式'" />
         </div>
       </v-container>
     </v-app-bar>
@@ -42,11 +29,7 @@
     <v-main class="app-main">
       <v-container class="main-container">
         <!-- 搜索区域 -->
-        <v-card 
-          class="search-card mb-8" 
-          elevation="8"
-          rounded="xl"
-        >
+        <v-card class="search-card mb-8" elevation="8" rounded="xl">
           <v-card-title class="d-flex justify-space-between align-center">
             <div class="d-flex align-center">
               <v-icon icon="mdi-magnify" color="primary" class="me-2" />
@@ -54,39 +37,21 @@
             </div>
             <v-chip color="primary" size="small" variant="flat">Beta</v-chip>
           </v-card-title>
-          
+
           <v-card-text>
             <v-form ref="searchFormRef" @submit.prevent="handleSearch">
               <div class="form-row">
-                <v-text-field
-                  v-model="searchForm.contractAddress"
-                  label="合约地址"
-                  placeholder="请输入合约地址，例如：4fJVpHzgaQ5F5BmFWpLrVf7zdmkYJccgcz6XMQo1pump"
-                  prepend-inner-icon="mdi-magnify"
-                  variant="outlined"
-                  clearable
-                  :rules="contractAddressRules"
-                  class="address-input"
-                  @keyup.enter="handleSearch"
-                />
-                
+                <v-text-field v-model="searchForm.contractAddress" label="合约地址"
+                  placeholder="请输入合约地址，例如：4fJVpHzgaQ5F5BmFWpLrVf7zdmkYJccgcz6XMQo1pump" prepend-inner-icon="mdi-magnify"
+                  variant="outlined" clearable :rules="contractAddressRules" class="address-input"
+                  @keyup.enter="handleSearch" />
+
                 <div class="form-controls">
-                  <v-select
-                    v-model="searchForm.limit"
-                    label="显示条数"
-                    :items="limitOptions"
-                    variant="outlined"
-                    class="limit-input"
-                  />
-                  
-                  <v-btn
-                    color="primary"
-                    size="large"
-                    :loading="loading"
-                    @click="handleSearch"
-                    class="search-btn"
-                    prepend-icon="mdi-magnify"
-                  >
+                  <v-select v-model="searchForm.limit" label="显示条数" :items="limitOptions" variant="outlined"
+                    class="limit-input" />
+
+                  <v-btn color="primary" size="large" :loading="loading" @click="handleSearch" class="search-btn"
+                    prepend-icon="mdi-magnify">
                     <span class="btn-text">查询</span>
                   </v-btn>
                 </div>
@@ -96,12 +61,7 @@
         </v-card>
 
         <!-- 结果区域 -->
-        <v-card 
-          v-if="tableData.length > 0"
-          class="result-card" 
-          elevation="8"
-          rounded="xl"
-        >
+        <v-card v-if="tableData.length > 0" class="result-card" elevation="8" rounded="xl">
           <v-card-title class="result-header">
             <div class="d-flex align-center flex-wrap">
               <div class="d-flex align-center me-4">
@@ -117,94 +77,41 @@
             </div>
             <v-spacer />
             <div class="d-flex gap-2">
-              <v-btn
-                v-if="!tokenExists"
-                color="secondary"
-                variant="outlined"
-                prepend-icon="mdi-database-plus"
-                @click="saveToDatabase"
-                size="small"
-                :disabled="selectedItems.length === 0"
-              >
+              <v-btn v-if="!tokenExists" color="secondary" variant="outlined" prepend-icon="mdi-database-plus"
+                @click="saveToDatabase" size="small" :disabled="selectedItems.length === 0">
                 <span class="btn-text">保存到数据库</span>
               </v-btn>
-              <v-chip
-                v-else
-                color="success"
-                size="small"
-                variant="flat"
-                prepend-icon="mdi-check-circle"
-              >
+              <v-chip v-else color="success" size="small" variant="flat" prepend-icon="mdi-check-circle">
                 已保存到数据库
               </v-chip>
             </div>
           </v-card-title>
-          
+
           <v-card-text class="pa-0">
             <!-- 桌面端表格 -->
             <div class="desktop-table">
-              <v-data-table
-                v-model="selectedItems"
-                :headers="tableHeaders"
-                :items="displayData"
-                :loading="loading"
-                class="data-table"
-                :sort-by="[{ key: 'totalProfit', order: 'desc' }]"
-                no-data-text="暂无数据"
-                loading-text="加载中..."
-                :items-per-page="-1"
-                hide-default-footer
-                show-select
-                return-object
-              >
+              <v-data-table v-model="selectedItems" :headers="tableHeaders" :items="displayData" :loading="loading"
+                class="data-table" :sort-by="[{ key: 'totalProfit', order: 'desc' }]" no-data-text="暂无数据"
+                loading-text="加载中..." :items-per-page="-1" hide-default-footer show-select return-object>
                 <template v-slot:[`item.rank`]="{ index }">
                   <div class="rank-cell">
-                    <v-icon 
-                      v-if="index === 0" 
-                      icon="mdi-trophy" 
-                      color="#FFD700" 
-                      size="20"
-                    />
-                    <v-icon 
-                      v-else-if="index === 1" 
-                      icon="mdi-trophy" 
-                      color="#C0C0C0" 
-                      size="18"
-                    />
-                    <v-icon 
-                      v-else-if="index === 2" 
-                      icon="mdi-trophy" 
-                      color="#CD7F32" 
-                      size="16"
-                    />
+                    <v-icon v-if="index === 0" icon="mdi-trophy" color="#FFD700" size="20" />
+                    <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="18" />
+                    <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="16" />
                     <span v-else class="rank-number">{{ index + 1 }}</span>
                   </div>
                 </template>
 
                 <template v-slot:[`item.holderWalletAddress`]="{ item }">
                   <div class="address-container">
-                    <span 
-                      class="address-text" 
-                      @click="copyAddress(item.holderWalletAddress)"
-                    >
+                    <span class="address-text" @click="copyAddress(item.holderWalletAddress)">
                       {{ formatAddress(item.holderWalletAddress) }}
                     </span>
                     <div class="address-actions">
-                      <v-btn
-                        icon="mdi-content-copy"
-                        variant="text"
-                        size="small"
-                        @click="copyAddress(item.holderWalletAddress)"
-                        class="action-btn"
-                      />
-                      <v-btn
-                        icon="mdi-open-in-new"
-                        variant="text"
-                        size="small"
-                        :href="item.explorerUrl"
-                        target="_blank"
-                        class="action-btn"
-                      />
+                      <v-btn icon="mdi-content-copy" variant="text" size="small"
+                        @click="copyAddress(item.holderWalletAddress)" class="action-btn" />
+                      <v-btn icon="mdi-open-in-new" variant="text" size="small" :href="item.explorerUrl" target="_blank"
+                        class="action-btn" />
                     </div>
                   </div>
                 </template>
@@ -218,11 +125,7 @@
                 </template>
 
                 <template v-slot:[`item.totalProfitPercentage`]="{ item }">
-                  <v-chip 
-                    :color="getProfitChipColor(item.totalProfit)"
-                    size="small"
-                    variant="flat"
-                  >
+                  <v-chip :color="getProfitChipColor(item.totalProfit)" size="small" variant="flat">
                     {{ item.totalProfitPercentage }}%
                   </v-chip>
                 </template>
@@ -239,41 +142,16 @@
 
             <!-- 移动端卡片列表 -->
             <div class="mobile-cards">
-              <v-card
-                v-for="(item, index) in displayData"
-                :key="item.holderWalletAddress"
-                class="mobile-card ma-3"
-                elevation="2"
-                rounded="lg"
-              >
+              <v-card v-for="(item, index) in displayData" :key="item.holderWalletAddress" class="mobile-card ma-3"
+                elevation="2" rounded="lg">
                 <v-card-title class="mobile-card-header">
                   <div class="d-flex align-center">
-                    <v-checkbox
-                      :model-value="isItemSelected(item)"
-                      @update:model-value="toggleItemSelection(item)"
-                      hide-details
-                      density="compact"
-                      class="me-3"
-                    />
+                    <v-checkbox :model-value="isItemSelected(item)" @update:model-value="toggleItemSelection(item)"
+                      hide-details density="compact" class="me-3" />
                     <div class="rank-badge">
-                      <v-icon 
-                        v-if="index === 0" 
-                        icon="mdi-trophy" 
-                        color="#FFD700" 
-                        size="16"
-                      />
-                      <v-icon 
-                        v-else-if="index === 1" 
-                        icon="mdi-trophy" 
-                        color="#C0C0C0" 
-                        size="14"
-                      />
-                      <v-icon 
-                        v-else-if="index === 2" 
-                        icon="mdi-trophy" 
-                        color="#CD7F32" 
-                        size="12"
-                      />
+                      <v-icon v-if="index === 0" icon="mdi-trophy" color="#FFD700" size="16" />
+                      <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="14" />
+                      <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="12" />
                       <span v-else class="rank-text">#{{ index + 1 }}</span>
                     </div>
                   </div>
@@ -283,43 +161,27 @@
                     </span>
                   </div>
                 </v-card-title>
-                
+
                 <v-card-text class="mobile-card-content">
                   <div class="address-row mb-4">
                     <v-chip size="small" variant="outlined" class="mb-2">钱包地址</v-chip>
                     <div class="d-flex justify-space-between align-center">
-                      <span 
-                        class="address-short" 
-                        @click="copyAddress(item.holderWalletAddress)"
-                      >
+                      <span class="address-short" @click="copyAddress(item.holderWalletAddress)">
                         {{ formatAddress(item.holderWalletAddress) }}
                       </span>
                       <div class="mobile-actions">
-                        <v-btn
-                          icon="mdi-content-copy"
-                          variant="text"
-                          size="small"
-                          @click="copyAddress(item.holderWalletAddress)"
-                        />
-                        <v-btn
-                          icon="mdi-open-in-new"
-                          variant="text"
-                          size="small"
-                          :href="item.explorerUrl"
-                          target="_blank"
-                        />
+                        <v-btn icon="mdi-content-copy" variant="text" size="small"
+                          @click="copyAddress(item.holderWalletAddress)" />
+                        <v-btn icon="mdi-open-in-new" variant="text" size="small" :href="item.explorerUrl"
+                          target="_blank" />
                       </div>
                     </div>
                   </div>
-                  
+
                   <v-row class="data-grid">
                     <v-col cols="6" class="data-item">
                       <v-chip size="small" variant="outlined" class="mb-1">盈利率</v-chip>
-                      <v-chip 
-                        :color="getProfitChipColor(item.totalProfit)"
-                        size="small"
-                        variant="flat"
-                      >
+                      <v-chip :color="getProfitChipColor(item.totalProfit)" size="small" variant="flat">
                         {{ item.totalProfitPercentage }}%
                       </v-chip>
                     </v-col>
@@ -339,34 +201,20 @@
         </v-card>
 
         <!-- 空状态 -->
-        <v-card 
-          v-else-if="!loading && searched"
-          class="empty-section text-center pa-8"
-          elevation="8"
-          rounded="xl"
-        >
+        <v-card v-else-if="!loading && searched" class="empty-section text-center pa-8" elevation="8" rounded="xl">
           <div class="empty-icon mb-4">📊</div>
           <h3 class="empty-text mb-2">未找到相关数据</h3>
           <p class="empty-subtext mb-6">请检查合约地址是否正确</p>
-          <v-btn 
-            color="primary" 
-            @click="handleSearch"
-            prepend-icon="mdi-refresh"
-          >
+          <v-btn color="primary" @click="handleSearch" prepend-icon="mdi-refresh">
             重新查询
           </v-btn>
         </v-card>
 
         <!-- 欢迎页面 -->
-        <v-card 
-          v-else-if="!loading && !searched"
-          class="welcome-section text-center pa-8"
-          elevation="8"
-          rounded="xl"
-        >
+        <v-card v-else-if="!loading && !searched" class="welcome-section text-center pa-8" elevation="8" rounded="xl">
           <div class="welcome-icon mb-4">🚀</div>
           <h2 class="welcome-title mb-4">欢迎十三老师回来上班</h2>
-          <p class="welcome-desc mb-6">输入代币地址，获取钱包的详细分析数据</p>
+          <p class="welcome-desc mb-6">今天也是充满暴击的一天！</p>
           <v-row class="feature-list justify-center">
             <v-col cols="auto" class="feature-item">
               <v-icon icon="mdi-chart-line" color="success" size="24" class="mb-2" />
@@ -386,91 +234,46 @@
     </v-main>
 
     <!-- 排行榜弹窗 -->
-    <v-dialog
-      v-model="rankingDialog"
-      max-width="1200"
-      scrollable
-    >
+    <v-dialog v-model="rankingDialog" max-width="1200" scrollable>
       <v-card class="ranking-dialog">
         <v-card-title class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
             <v-icon icon="mdi-trophy" color="warning" class="me-2" />
             <span>钱包排行榜</span>
           </div>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            @click="rankingDialog = false"
-          />
+          <v-btn icon="mdi-close" variant="text" @click="rankingDialog = false" />
         </v-card-title>
 
         <v-card-text class="pa-4">
           <div class="d-flex justify-space-between align-center mb-4">
             <h3 class="ranking-title">排行榜</h3>
-            <v-btn
-              color="primary"
-              variant="outlined"
-              size="small"
-              prepend-icon="mdi-refresh"
-              @click="loadRankingData"
-              :loading="rankingLoading"
-            >
+            <v-btn color="primary" variant="outlined" size="small" prepend-icon="mdi-refresh" @click="loadRankingData"
+              :loading="rankingLoading">
               刷新
             </v-btn>
           </div>
-          
+
           <!-- 桌面端排行榜表格 -->
           <div class="desktop-ranking">
-            <v-data-table
-              :headers="rankingHeaders"
-              :items="rankingData"
-              :loading="rankingLoading"
-              class="ranking-table"
-              :sort-by="[{ key: 'totalProfit', order: 'desc' }]"
-              no-data-text="暂无排行榜数据"
-              loading-text="加载中..."
-              :items-per-page="20"
-              :items-per-page-options="[10, 20, 50, 100]"
-            >
+            <v-data-table :headers="rankingHeaders" :items="rankingData" :loading="rankingLoading" class="ranking-table"
+              :sort-by="[{ key: 'totalProfit', order: 'desc' }]" no-data-text="暂无排行榜数据" loading-text="加载中..."
+              :items-per-page="20" :items-per-page-options="[10, 20, 50, 100]">
               <template v-slot:[`item.rank`]="{ index }">
                 <div class="rank-cell">
-                  <v-icon 
-                    v-if="index === 0" 
-                    icon="mdi-trophy" 
-                    color="#FFD700" 
-                    size="24"
-                  />
-                  <v-icon 
-                    v-else-if="index === 1" 
-                    icon="mdi-trophy" 
-                    color="#C0C0C0" 
-                    size="22"
-                  />
-                  <v-icon 
-                    v-else-if="index === 2" 
-                    icon="mdi-trophy" 
-                    color="#CD7F32" 
-                    size="20"
-                  />
+                  <v-icon v-if="index === 0" icon="mdi-trophy" color="#FFD700" size="24" />
+                  <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="22" />
+                  <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="20" />
                   <span v-else class="rank-number">{{ index + 1 }}</span>
                 </div>
               </template>
 
               <template v-slot:[`item.walletAddress`]="{ item }">
                 <div class="address-container">
-                  <span 
-                    class="address-text" 
-                    @click="copyAddress(item.walletAddress)"
-                  >
+                  <span class="address-text" @click="copyAddress(item.walletAddress)">
                     {{ formatAddress(item.walletAddress) }}
                   </span>
-                  <v-btn
-                    icon="mdi-content-copy"
-                    variant="text"
-                    size="small"
-                    @click="copyAddress(item.walletAddress)"
-                    class="action-btn"
-                  />
+                  <v-btn icon="mdi-content-copy" variant="text" size="small" @click="copyAddress(item.walletAddress)"
+                    class="action-btn" />
                 </div>
               </template>
 
@@ -482,72 +285,32 @@
                 </div>
               </template>
 
-                            <template v-slot:[`item.count`]="{ item }">
+              <template v-slot:[`item.count`]="{ item }">
                 <div class="count-cell">
-                  <v-chip 
-                    color="error"
-                    size="small"
-                    variant="flat"
-                    prepend-icon="mdi-flash"
-                  >
+                  <v-chip color="error" size="small" variant="flat" prepend-icon="mdi-flash">
                     {{ item.count || 0 }}x
                   </v-chip>
                 </div>
-            </template>
+              </template>
 
               <template v-slot:[`item.remark`]="{ item }">
                 <div class="remark-cell">
-                  <v-chip
-                    v-if="!item.isEditingRemark"
-                    :color="item.remark ? 'primary' : 'default'"
-                    size="small"
-                    variant="outlined"
-                    @click="startEditRemark(item)"
-                    class="remark-chip"
-                  >
-                    <v-icon 
-                      :icon="item.remark ? 'mdi-note-text' : 'mdi-note-plus'" 
-                      size="14" 
-                      class="me-1"
-                    />
+                  <v-chip v-if="!item.isEditingRemark" :color="item.remark ? 'primary' : 'default'" size="small"
+                    variant="outlined" @click="startEditRemark(item)" class="remark-chip">
+                    <v-icon :icon="item.remark ? 'mdi-note-text' : 'mdi-note-plus'" size="14" class="me-1" />
                     {{ item.remark || '添加备注' }}
                   </v-chip>
-                  
+
                   <div v-else class="remark-edit">
-                    <v-text-field
-                      v-model="item.editingRemark"
-                      variant="outlined"
-                      density="compact"
-                      placeholder="输入备注信息"
-                      hide-details
-                      :loading="item.savingRemark"
-                      :disabled="item.savingRemark"
-                      @keyup.enter="saveRemark(item)"
-                      @keyup.esc="cancelEditRemark(item)"
-                      @blur="saveRemark(item)"
-                      class="remark-input"
-                      autofocus
-                    />
+                    <v-text-field v-model="item.editingRemark" variant="outlined" density="compact" placeholder="输入备注信息"
+                      hide-details :loading="item.savingRemark" :disabled="item.savingRemark"
+                      @keyup.enter="saveRemark(item)" @keyup.esc="cancelEditRemark(item)" @blur="saveRemark(item)"
+                      class="remark-input" autofocus />
                     <div class="remark-actions">
-                      <v-btn
-                        icon="mdi-check"
-                        variant="text"
-                        size="small"
-                        color="success"
-                        :loading="item.savingRemark"
-                        :disabled="item.savingRemark"
-                        @mousedown.prevent
-                        @click="saveRemark(item)"
-                      />
-                      <v-btn
-                        icon="mdi-close"
-                        variant="text"
-                        size="small"
-                        color="error"
-                        :disabled="item.savingRemark"
-                        @mousedown.prevent
-                        @click="cancelEditRemark(item)"
-                      />
+                      <v-btn icon="mdi-check" variant="text" size="small" color="success" :loading="item.savingRemark"
+                        :disabled="item.savingRemark" @mousedown.prevent @click="saveRemark(item)" />
+                      <v-btn icon="mdi-close" variant="text" size="small" color="error" :disabled="item.savingRemark"
+                        @mousedown.prevent @click="cancelEditRemark(item)" />
                     </div>
                   </div>
                 </div>
@@ -555,15 +318,8 @@
 
               <template v-slot:[`item.actions`]="{ item }">
                 <div class="actions-cell">
-                  <v-btn
-                    icon="mdi-delete"
-                    variant="text"
-                    size="small"
-                    color="error"
-                    @click="deleteSmartMoneyAddress(item)"
-                    :loading="item.deleting"
-                    class="delete-btn"
-                  />
+                  <v-btn icon="mdi-delete" variant="text" size="small" color="error"
+                    @click="deleteSmartMoneyAddress(item)" :loading="item.deleting" class="delete-btn" />
                 </div>
               </template>
             </v-data-table>
@@ -571,41 +327,18 @@
 
           <!-- 移动端排行榜卡片 -->
           <div class="mobile-ranking">
-            <v-card
-              v-for="(item, index) in rankingData"
-              :key="item.walletAddress"
-              class="ranking-card ma-2"
-              elevation="2"
-              rounded="lg"
-            >
+            <v-card v-for="(item, index) in rankingData" :key="item.walletAddress" class="ranking-card ma-2"
+              elevation="2" rounded="lg">
               <v-card-title class="ranking-card-header">
                 <div class="d-flex align-center">
                   <div class="rank-badge me-3">
-                    <v-icon 
-                      v-if="index === 0" 
-                      icon="mdi-trophy" 
-                      color="#FFD700" 
-                      size="20"
-                    />
-                    <v-icon 
-                      v-else-if="index === 1" 
-                      icon="mdi-trophy" 
-                      color="#C0C0C0" 
-                      size="18"
-                    />
-                    <v-icon 
-                      v-else-if="index === 2" 
-                      icon="mdi-trophy" 
-                      color="#CD7F32" 
-                      size="16"
-                    />
+                    <v-icon v-if="index === 0" icon="mdi-trophy" color="#FFD700" size="20" />
+                    <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="18" />
+                    <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="16" />
                     <span v-else class="rank-text">#{{ index + 1 }}</span>
                   </div>
                   <div class="address-info">
-                    <span 
-                      class="address-short" 
-                      @click="copyAddress(item.walletAddress)"
-                    >
+                    <span class="address-short" @click="copyAddress(item.walletAddress)">
                       {{ formatAddress(item.walletAddress) }}
                     </span>
                   </div>
@@ -616,17 +349,12 @@
                   </span>
                 </div>
               </v-card-title>
-              
+
               <v-card-text>
                 <v-row>
                   <v-col cols="6">
                     <v-chip size="small" variant="outlined" class="mb-1">暴击倍数</v-chip>
-                    <v-chip 
-                      color="error"
-                      size="small"
-                      variant="flat"
-                      prepend-icon="mdi-flash"
-                    >
+                    <v-chip color="error" size="small" variant="flat" prepend-icon="mdi-flash">
                       {{ item.count || 0 }}x
                     </v-chip>
                   </v-col>
@@ -637,58 +365,25 @@
                   <v-col cols="12">
                     <v-chip size="small" variant="outlined" class="mb-2">备注信息</v-chip>
                     <div v-if="!item.isEditingRemark" class="mobile-remark">
-                      <v-chip
-                        :color="item.remark ? 'primary' : 'default'"
-                        size="small"
-                        variant="outlined"
-                        @click="startEditRemark(item)"
-                        class="remark-chip"
-                      >
-                        <v-icon 
-                          :icon="item.remark ? 'mdi-note-text' : 'mdi-note-plus'" 
-                          size="14" 
-                          class="me-1"
-                        />
+                      <v-chip :color="item.remark ? 'primary' : 'default'" size="small" variant="outlined"
+                        @click="startEditRemark(item)" class="remark-chip">
+                        <v-icon :icon="item.remark ? 'mdi-note-text' : 'mdi-note-plus'" size="14" class="me-1" />
                         {{ item.remark || '添加备注' }}
                       </v-chip>
                     </div>
                     <div v-else class="mobile-remark-edit">
-                      <v-text-field
-                        v-model="item.editingRemark"
-                        variant="outlined"
-                        density="compact"
-                        placeholder="输入备注信息"
-                        hide-details
-                        :loading="item.savingRemark"
-                        :disabled="item.savingRemark"
-                        @keyup.enter="saveRemark(item)"
-                        @keyup.esc="cancelEditRemark(item)"
-                        @blur="saveRemark(item)"
-                        autofocus
-                      />
+                      <v-text-field v-model="item.editingRemark" variant="outlined" density="compact"
+                        placeholder="输入备注信息" hide-details :loading="item.savingRemark" :disabled="item.savingRemark"
+                        @keyup.enter="saveRemark(item)" @keyup.esc="cancelEditRemark(item)" @blur="saveRemark(item)"
+                        autofocus />
                       <div class="remark-actions mt-2">
-                        <v-btn
-                          color="success"
-                          variant="outlined"
-                          size="small"
-                          prepend-icon="mdi-check"
-                          :loading="item.savingRemark"
-                          :disabled="item.savingRemark"
-                          @mousedown.prevent
-                          @click="saveRemark(item)"
-                          class="me-2"
-                        >
+                        <v-btn color="success" variant="outlined" size="small" prepend-icon="mdi-check"
+                          :loading="item.savingRemark" :disabled="item.savingRemark" @mousedown.prevent
+                          @click="saveRemark(item)" class="me-2">
                           保存
                         </v-btn>
-                        <v-btn
-                          color="error"
-                          variant="outlined"
-                          size="small"
-                          prepend-icon="mdi-close"
-                          :disabled="item.savingRemark"
-                          @mousedown.prevent
-                          @click="cancelEditRemark(item)"
-                        >
+                        <v-btn color="error" variant="outlined" size="small" prepend-icon="mdi-close"
+                          :disabled="item.savingRemark" @mousedown.prevent @click="cancelEditRemark(item)">
                           取消
                         </v-btn>
                       </div>
@@ -697,14 +392,8 @@
                   <v-col cols="12" class="pt-2">
                     <v-divider class="mb-3"></v-divider>
                     <div class="d-flex justify-end">
-                      <v-btn
-                        color="error"
-                        variant="outlined"
-                        size="small"
-                        prepend-icon="mdi-delete"
-                        @click="deleteSmartMoneyAddress(item)"
-                        :loading="item.deleting"
-                      >
+                      <v-btn color="error" variant="outlined" size="small" prepend-icon="mdi-delete"
+                        @click="deleteSmartMoneyAddress(item)" :loading="item.deleting">
                         删除
                       </v-btn>
                     </div>
@@ -719,26 +408,14 @@
 
     <!-- 加载遮罩 -->
     <v-overlay v-model="loading" class="align-center justify-center">
-      <v-progress-circular
-        color="primary"
-        indeterminate
-        size="64"
-      />
+      <v-progress-circular color="primary" indeterminate size="64" />
     </v-overlay>
 
     <!-- 消息提示 -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="3000"
-      location="top"
-    >
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000" location="top">
       {{ snackbar.text }}
       <template #actions>
-        <v-btn
-          variant="text"
-          @click="snackbar.show = false"
-        >
+        <v-btn variant="text" @click="snackbar.show = false">
           关闭
         </v-btn>
       </template>
@@ -835,7 +512,7 @@ const displayData = computed(() => {
 // 监听displayData变化，自动更新选中项
 watch(displayData, (newDisplayData) => {
   // 只保留仍在显示列表中的选中项
-  selectedItems.value = selectedItems.value.filter(selected => 
+  selectedItems.value = selectedItems.value.filter(selected =>
     newDisplayData.some(item => item.holderWalletAddress === selected.holderWalletAddress)
   )
 }, { deep: true })
@@ -868,34 +545,34 @@ const checkToken = async (contractAddress) => {
 const handleSearch = async () => {
   const { valid } = await searchFormRef.value.validate()
   if (!valid) return
-  
+
   loading.value = true
   searched.value = true
   // 重置代币存在状态
   tokenExists.value = false
-  
+
   try {
     // 并行执行查询和代币检查
     const [response] = await Promise.all([
       contractAPI.getSmartMoneyRanking(searchForm.contractAddress),
       checkToken(searchForm.contractAddress)
     ])
-    
+
     if (response.data && response.data.list) {
       // 过滤掉负盈利的地址，只保留盈利的聪明钱地址
       const profitableAddresses = response.data.list.filter(item => {
         const profit = parseFloat(item.totalProfit) || 0
         return profit > 0
       })
-      
+
       tableData.value = profitableAddresses
       // 默认全选显示在页面上的数据
       selectedItems.value = [...displayData.value]
-      
+
       const originalCount = response.data.list.length
       const filteredCount = profitableAddresses.length
       const removedCount = originalCount - filteredCount
-      
+
       if (removedCount > 0) {
         showMessage(`查询成功，共获取到 ${originalCount} 条数据，过滤掉 ${removedCount} 条负盈利地址，显示 ${filteredCount} 条盈利地址，已自动选择前 ${displayData.value.length} 条`, 'success')
       } else {
@@ -936,11 +613,11 @@ const saveToDatabase = async () => {
     showMessage('请选择要保存的数据', 'warning')
     return
   }
-  
+
   try {
     loading.value = true
     showMessage(`正在保存 ${selectedItems.value.length} 条数据到数据库...`, 'info')
-    
+
     // 格式化数据用于保存聪明钱地址，再次过滤确保只保存盈利地址
     const addressesToSave = selectedItems.value
       .filter(item => {
@@ -953,27 +630,27 @@ const saveToDatabase = async () => {
         count: 1, // 默认计数为1
         remark: null // 默认备注为空
       }))
-    
+
     // 检查是否有有效的盈利地址
     if (addressesToSave.length === 0) {
       showMessage('没有盈利地址可以保存', 'warning')
       return
     }
-    
+
     // 先保存聪明钱地址
     const response = await batchSaveSmartMoneyAddresses(addressesToSave)
-    
+
     // 聪明钱地址保存成功后，再保存代币信息
     await createToken(searchForm.contractAddress)
-    
+
     // 更新代币存在状态
     tokenExists.value = true
-    
+
     const processedCount = response.data?.count || selectedItems.value.length
     showMessage(`成功保存 ${processedCount} 条聪明钱地址和代币信息`, 'success')
     console.log('保存的地址数据:', addressesToSave)
     console.log('后端处理结果:', response.data)
-    
+
   } catch (error) {
     console.error('保存数据失败:', error)
     showMessage(`保存失败: ${error.message}`, 'error')
@@ -986,7 +663,7 @@ const saveToDatabase = async () => {
 const formatProfit = (profit) => {
   const num = parseFloat(profit)
   if (isNaN(num)) return '0.00'
-  
+
   if (num >= 1000000) {
     return (num / 1000000).toFixed(2) + 'M'
   } else if (num >= 1000) {
@@ -1045,7 +722,7 @@ const loadRankingData = async () => {
       sortBy: 'total_profit',
       sortOrder: 'DESC'
     })
-    
+
     if (response.success && response.data) {
       // 处理返回的数据，添加编辑状态字段
       const processedData = (response.data.list || response.data).map(item => ({
@@ -1063,9 +740,9 @@ const loadRankingData = async () => {
         savingRemark: false,
         deleting: false
       }))
-      
+
       rankingData.value = processedData
-      
+
       // 显示成功消息
       const total = response.data.total || response.data.pagination?.total || processedData.length
       showMessage(`排行榜加载成功，共 ${processedData.length} 条数据${total ? ` (总计 ${total} 条)` : ''}`, 'success')
@@ -1093,22 +770,22 @@ const saveRemark = async (item) => {
   if (item.savingRemark) {
     return
   }
-  
+
   const newRemark = item.editingRemark.trim()
-  
+
   // 如果备注没有变化，直接退出编辑模式
   if (newRemark === (item.remark || '')) {
     item.isEditingRemark = false
     return
   }
-  
+
   try {
     // 设置保存状态
     item.savingRemark = true
-    
+
     // 调用API更新备注
     await updateSmartMoneyAddress(item.id, { remark: newRemark })
-    
+
     item.remark = newRemark
     item.isEditingRemark = false
     showMessage('备注更新成功', 'success')
@@ -1137,20 +814,20 @@ const deleteSmartMoneyAddress = async (item) => {
   if (!confirm(`确定要删除地址 ${formatAddress(item.walletAddress)} 吗？`)) {
     return
   }
-  
+
   try {
     // 设置删除状态
     item.deleting = true
-    
+
     // 调用删除API
     await deleteAddressAPI(item.id)
-    
+
     // 从列表中移除
     const index = rankingData.value.findIndex(data => data.id === item.id)
     if (index > -1) {
       rankingData.value.splice(index, 1)
     }
-    
+
     showMessage('地址删除成功', 'success')
   } catch (error) {
     console.error('删除地址失败:', error)
@@ -1512,6 +1189,7 @@ const deleteSmartMoneyAddress = async (item) => {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1522,6 +1200,7 @@ const deleteSmartMoneyAddress = async (item) => {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1532,61 +1211,61 @@ const deleteSmartMoneyAddress = async (item) => {
   .logo-title {
     font-size: 20px;
   }
-  
+
   .logo-subtitle {
     display: none;
   }
-  
+
   .main-container {
     padding: 20px 15px;
   }
-  
+
   .form-row {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .form-controls {
     flex-direction: row;
     justify-content: space-between;
   }
-  
+
   .limit-input {
     width: 100px;
   }
-  
+
   .search-btn {
     flex: 1;
     min-width: 120px;
   }
-  
+
   .btn-text {
     display: none;
   }
-  
+
   .result-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .desktop-table {
     display: none;
   }
-  
+
   .mobile-cards {
     display: block;
   }
-  
+
   .feature-list {
     flex-direction: column;
     gap: 20px;
   }
-  
+
   .feature-item {
     flex-direction: row;
     justify-content: center;
   }
-  
+
   .welcome-title {
     font-size: 24px;
   }
@@ -1596,11 +1275,11 @@ const deleteSmartMoneyAddress = async (item) => {
   .logo-icon {
     font-size: 24px;
   }
-  
+
   .logo-title {
     font-size: 18px;
   }
-  
+
   .data-grid {
     gap: 10px;
   }
@@ -1735,34 +1414,34 @@ const deleteSmartMoneyAddress = async (item) => {
   .ranking-btn .btn-text {
     display: none;
   }
-  
+
   .ranking-dialog {
     margin: 10px;
     max-width: calc(100vw - 20px);
   }
-  
+
   .desktop-ranking {
     display: none;
   }
-  
+
   .mobile-ranking {
     display: block;
   }
-  
+
   .ranking-title {
     font-size: 18px;
   }
-  
+
   .remark-edit {
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  
+
   .remark-input {
     flex: 1;
   }
-  
+
   .mobile-remark-edit {
     display: block;
   }
@@ -1772,7 +1451,7 @@ const deleteSmartMoneyAddress = async (item) => {
   .ranking-card {
     margin: 8px;
   }
-  
+
   .ranking-title {
     font-size: 16px;
   }
