@@ -9,7 +9,7 @@
     },
     {
       "source": "/priapi/(.*)",
-      "destination": "https://web3.okx.com/$1"
+      "destination": "https://web3.okx.com//priapi/$1"
     },
     {
       "source": "/(.*)",
