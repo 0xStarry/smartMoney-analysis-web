@@ -33,44 +33,7 @@ export const isValidAddress = (address) => {
   return /^0x[a-fA-F0-9]{40}$/.test(address)
 }
 
-// 导出表格数据为CSV
-export const exportToCSV = (data, filename = 'export.csv') => {
-  if (!data || data.length === 0) return
-  
-  // 获取表头
-  const headers = Object.keys(data[0])
-  
-  // 创建CSV内容
-  let csvContent = headers.join(',') + '\n'
-  
-  data.forEach(row => {
-    const values = headers.map(header => {
-      const value = row[header]
-      // 处理包含逗号或换行的值
-      if (typeof value === 'string' && (value.includes(',') || value.includes('\n'))) {
-        return `"${value.replace(/"/g, '""')}"`
-      }
-      return value
-    })
-    csvContent += values.join(',') + '\n'
-  })
-  
-  // 添加BOM以支持中文
-  const BOM = '\uFEFF'
-  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
-  
-  // 创建下载链接
-  const link = document.createElement('a')
-  if (link.download !== undefined) {
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', filename)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-}
+
 
 // 防抖函数
 export const debounce = (func, wait = 300) => {

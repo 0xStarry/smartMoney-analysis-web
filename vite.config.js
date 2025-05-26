@@ -10,6 +10,11 @@ export default defineConfig({
         target: 'https://web3.okx.com',
         changeOrigin: true,
         secure: true
+      },
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false
       }
     }
   }
