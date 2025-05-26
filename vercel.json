@@ -4,14 +4,6 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://api.young13.club/$1"
-    },
-    {
-      "source": "/priapi/(.*)",
-      "destination": "https://web3.okx.com/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

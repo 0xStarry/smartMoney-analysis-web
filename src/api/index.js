@@ -53,7 +53,7 @@ export const contractAPI = {
   // 获取智能钱包排行榜数据
   getSmartMoneyRanking: (tokenContractAddress) => {
     return service({
-      url: '/priapi/v1/dx/market/v2/pnl/top-trader/ranking-list',
+      url: '/api/priapi/v1/dx/market/v2/pnl/top-trader/ranking-list',
       method: 'get',
       params: {
         chainId: '501', // Solana链ID
