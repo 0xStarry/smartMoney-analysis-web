@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://api.young13.club/$1"
+      "destination": "https://api.young13.club/api/$1"
     },
     {
       "source": "/priapi/(.*)",
