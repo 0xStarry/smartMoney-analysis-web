@@ -717,7 +717,7 @@ const loadRankingData = async () => {
   try {
     // 调用真实API接口
     const response = await getRanking({
-      limit: 50,
+      limit: 9999,
       page: 1,
       sortBy: 'total_profit',
       sortOrder: 'DESC'
