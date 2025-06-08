@@ -52,11 +52,14 @@ service.interceptors.response.use(
 export const contractAPI = {
   // 获取智能钱包排行榜数据
   getSmartMoneyRanking: (tokenContractAddress) => {
+    // 根据合约地址前缀判断链类型
+    const chainId = tokenContractAddress.startsWith('0x') ? '56' : '501' // BSC链ID: 56, Solana链ID: 501
+    
     return service({
       url: '/priapi/v1/dx/market/v2/pnl/top-trader/ranking-list',
       method: 'get',
       params: {
-        chainId: '501', // Solana链ID
+        chainId: chainId,
         tokenContractAddress: tokenContractAddress
       }
     })
