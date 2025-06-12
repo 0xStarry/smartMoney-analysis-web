@@ -89,8 +89,8 @@ const validateWalletAddress = (address) => {
   }
   
   // 检查字符格式：Base58编码（排除0、O、I、l）
-  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/
-  return base58Regex.test(address)
+  // const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/
+  return true;
 }
 
 /**

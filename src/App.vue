@@ -247,15 +247,29 @@
         <v-card-text class="pa-4">
           <div class="d-flex justify-space-between align-center mb-4">
             <h3 class="ranking-title">排行榜</h3>
-            <v-btn color="primary" variant="outlined" size="small" prepend-icon="mdi-refresh" @click="loadRankingData"
-              :loading="rankingLoading">
-              刷新
-            </v-btn>
+            <div class="d-flex align-center gap-2">
+              <!-- 链类型筛选 -->
+              <v-chip-group v-model="selectedChainType" selected-class="text-primary" class="chain-filter">
+                <v-chip filter variant="outlined" value="all" size="small">
+                  全部
+                </v-chip>
+                <v-chip filter variant="outlined" value="solana" size="small" color="purple">
+                  Solana
+                </v-chip>
+                <v-chip filter variant="outlined" value="bsc" size="small" color="orange">
+                  BSC
+                </v-chip>
+              </v-chip-group>
+              <v-btn color="primary" variant="outlined" size="small" prepend-icon="mdi-refresh" @click="loadRankingData"
+                :loading="rankingLoading">
+                刷新
+              </v-btn>
+            </div>
           </div>
 
           <!-- 桌面端排行榜表格 -->
           <div class="desktop-ranking">
-            <v-data-table :headers="rankingHeaders" :items="rankingData" :loading="rankingLoading" class="ranking-table"
+            <v-data-table :headers="rankingHeaders" :items="filteredRankingData" :loading="rankingLoading" class="ranking-table"
               :sort-by="[{ key: 'totalProfit', order: 'desc' }]" no-data-text="暂无排行榜数据" loading-text="加载中..."
               :items-per-page="20" :items-per-page-options="[10, 20, 50, 100]">
               <template v-slot:[`item.rank`]="{ index }">
@@ -264,6 +278,14 @@
                   <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="22" />
                   <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="20" />
                   <span v-else class="rank-number">{{ index + 1 }}</span>
+                </div>
+              </template>
+
+              <template v-slot:[`item.chainType`]="{ item }">
+                <div class="chain-cell">
+                  <v-chip :color="getChainTypeColor(item.chainType)" size="small" variant="flat">
+                    {{ getChainTypeText(item.chainType) }}
+                  </v-chip>
                 </div>
               </template>
 
@@ -327,7 +349,7 @@
 
           <!-- 移动端排行榜卡片 -->
           <div class="mobile-ranking">
-            <v-card v-for="(item, index) in rankingData" :key="item.walletAddress" class="ranking-card ma-2"
+            <v-card v-for="(item, index) in filteredRankingData" :key="item.walletAddress" class="ranking-card ma-2"
               elevation="2" rounded="lg">
               <v-card-title class="ranking-card-header">
                 <div class="d-flex align-center">
@@ -352,13 +374,19 @@
 
               <v-card-text>
                 <v-row>
-                  <v-col cols="6">
+                  <v-col cols="4">
+                    <v-chip size="small" variant="outlined" class="mb-1">链类型</v-chip>
+                    <v-chip :color="getChainTypeColor(item.chainType)" size="small" variant="flat">
+                      {{ getChainTypeText(item.chainType) }}
+                    </v-chip>
+                  </v-col>
+                  <v-col cols="4">
                     <v-chip size="small" variant="outlined" class="mb-1">暴击倍数</v-chip>
                     <v-chip color="error" size="small" variant="flat" prepend-icon="mdi-flash">
                       {{ item.count || 0 }}x
                     </v-chip>
                   </v-col>
-                  <v-col cols="6">
+                  <v-col cols="4">
                     <v-chip size="small" variant="outlined" class="mb-1">更新时间</v-chip>
                     <div class="data-value">{{ formatDate(item.updatedAt) }}</div>
                   </v-col>
@@ -473,6 +501,7 @@ const tableHeaders = [
 // 排行榜表格头部配置
 const rankingHeaders = [
   { title: '排名', key: 'rank', align: 'center', width: 80, sortable: false },
+  { title: '链', key: 'chainType', align: 'center', width: 100, sortable: true },
   { title: '钱包地址', key: 'walletAddress', align: 'start', minWidth: 220, sortable: false },
   { title: '总盈利 (USD)', key: 'totalProfit', align: 'end', minWidth: 160, sortable: true },
   { title: '暴击倍数', key: 'count', align: 'center', width: 120, sortable: true },
@@ -496,6 +525,7 @@ const tokenExists = ref(false) // 代币是否已存在
 // 排行榜状态
 const rankingDialog = ref(false)
 const rankingLoading = ref(false)
+const selectedChainType = ref('all') // 选中的链类型：all, solana, bsc
 
 // 消息提示
 const snackbar = reactive({
@@ -507,6 +537,14 @@ const snackbar = reactive({
 // 计算属性：根据limit显示数据
 const displayData = computed(() => {
   return tableData.value.slice(0, searchForm.limit)
+})
+
+// 计算属性：根据链类型筛选排行榜数据
+const filteredRankingData = computed(() => {
+  if (selectedChainType.value === 'all') {
+    return rankingData.value
+  }
+  return rankingData.value.filter(item => item.chainType === selectedChainType.value)
 })
 
 // 监听displayData变化，自动更新选中项
@@ -692,6 +730,38 @@ const getProfitChipColor = (profit) => {
   return num >= 0 ? 'success' : 'error'
 }
 
+// 判断链类型
+const getChainType = (address) => {
+  if (address.startsWith('0x')) {
+    return 'bsc'
+  }
+  return 'solana'
+}
+
+// 获取链类型显示文字
+const getChainTypeText = (chainType) => {
+  switch (chainType) {
+    case 'bsc':
+      return 'BSC'
+    case 'solana':
+      return 'Solana'
+    default:
+      return '未知'
+  }
+}
+
+// 获取链类型颜色
+const getChainTypeColor = (chainType) => {
+  switch (chainType) {
+    case 'bsc':
+      return 'orange'
+    case 'solana':
+      return 'purple'
+    default:
+      return 'default'
+  }
+}
+
 // 复制地址
 const copyAddress = async (address) => {
   try {
@@ -725,21 +795,28 @@ const loadRankingData = async () => {
 
     if (response.success && response.data) {
       // 处理返回的数据，添加编辑状态字段
-      const processedData = (response.data.list || response.data).map(item => ({
-        ...item,
-        // 统一字段名
-        walletAddress: item.address || item.walletAddress,
-        totalProfit: item.total_profit || item.totalProfit,
-        count: item.count || 0,
-        remark: item.remark || '',
-        updatedAt: item.updated_at || item.updatedAt,
-        // 添加编辑状态
-        isEditingRemark: false,
-        editingRemark: '',
-        // 添加保存和删除状态
-        savingRemark: false,
-        deleting: false
-      }))
+      const processedData = (response.data.list || response.data).map(item => {
+        const walletAddress = item.address || item.walletAddress
+        const chainType = getChainType(walletAddress)
+        
+        return {
+          ...item,
+          // 统一字段名
+          walletAddress: walletAddress,
+          totalProfit: item.total_profit || item.totalProfit,
+          count: item.count || 0,
+          remark: item.remark || '',
+          updatedAt: item.updated_at || item.updatedAt,
+          // 添加链类型
+          chainType: chainType,
+          // 添加编辑状态
+          isEditingRemark: false,
+          editingRemark: '',
+          // 添加保存和删除状态
+          savingRemark: false,
+          deleting: false
+        }
+      })
 
       rankingData.value = processedData
 
@@ -1333,6 +1410,17 @@ const deleteSmartMoneyAddress = async (item) => {
   transform: scale(1.1);
 }
 
+/* 链类型筛选器 */
+.chain-filter {
+  margin: 0;
+}
+
+.chain-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* 桌面端排行榜 */
 .desktop-ranking {
   display: block;
@@ -1430,6 +1518,10 @@ const deleteSmartMoneyAddress = async (item) => {
 
   .ranking-title {
     font-size: 18px;
+  }
+
+  .chain-filter {
+    flex-wrap: wrap;
   }
 
   .remark-edit {
