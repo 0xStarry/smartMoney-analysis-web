@@ -38,8 +38,8 @@ export default defineConfig({
         secure: true
       },
       '/api': {
-        // target: 'https://api.young13.club',
-        target: 'http://localhost:3000',
+        target: 'https://api.young13.club',
+        // target: 'http://localhost:3000',
         changeOrigin: true,
         secure: true
       }
