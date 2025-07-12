@@ -79,21 +79,27 @@ export const createToken = async (contractAddress) => {
 export const checkTokenExists = async (contractAddress) => {
   try {
     const response = await tokenAPI.get(`/tokens/address/${contractAddress}`)
-    return { 
-      success: true,
-      data: { exists: true, ...response.data },
-      message: response.message
-    }
-  } catch (error) {
-    // 如果是404错误或者code不为0，说明代币不存在
-    if (error.response && (error.response.status === 404 || 
-        (error.response.data && error.response.data.code !== 0))) {
+    
+    // 根据data字段的内容来判断代币是否存在
+    const hasData = response.data && 
+                   (Array.isArray(response.data) ? response.data.length > 0 : 
+                    (typeof response.data === 'object' && Object.keys(response.data).length > 0))
+    
+    if (hasData) {
+      return { 
+        success: true,
+        data: { exists: true, ...response.data },
+        message: response.message || "代币地址存在"
+      }
+    } else {
       return { 
         success: false,
         data: { exists: false },
-        message: error.message || "代币地址不存在"
+        message: "代币地址不存在"
       }
     }
+  } catch (error) {
+    // 网络错误或其他异常
     throw new Error(`检查代币是否存在失败: ${error.message}`)
   }
 }

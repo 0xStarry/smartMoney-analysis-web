@@ -108,6 +108,20 @@ const validateTotalProfit = (totalProfit) => {
 }
 
 /**
+ * 验证盈利百分比数据
+ * @param {any} percent - 盈利百分比数据
+ * @returns {boolean} 是否有效
+ */
+const validatePercent = (percent) => {
+  if (percent === undefined || percent === null) {
+    return true // 允许为空
+  }
+  
+  const percentage = parseFloat(percent)
+  return !isNaN(percentage)
+}
+
+/**
  * 批量保存聪明钱地址到数据库
  * @param {Array} addresses - 地址数据数组
  * @returns {Promise} API响应
@@ -122,10 +136,12 @@ export const batchSaveSmartMoneyAddresses = async (addresses) => {
     const formattedAddresses = addresses.map(addr => {
       const walletAddress = addr.walletAddress || addr.address
       const totalProfit = addr.total_profit !== undefined ? addr.total_profit : (addr.totalProfit || 0)
+      const profitPercentage = addr.percent !== undefined ? addr.percent : (addr.totalProfitPercentage || 0)
       
       return {
         address: walletAddress,
         total_profit: parseFloat(totalProfit) || 0,
+        percent: parseFloat(profitPercentage) || 0,
         count: parseInt(addr.count) || 1,
         remark: addr.remark || null
       }
@@ -145,11 +161,17 @@ export const batchSaveSmartMoneyAddresses = async (addresses) => {
         return true
       }
       
+      // 验证盈利百分比数据
+      if (!validatePercent(item.percent)) {
+        console.warn('无效百分比数据:', item.percent)
+        return true
+      }
+      
       return false
     })
 
     if (invalidAddresses.length > 0) {
-      throw new Error(`存在 ${invalidAddresses.length} 个格式不正确的地址或收益数据`)
+      throw new Error(`存在 ${invalidAddresses.length} 个格式不正确的地址、收益或百分比数据`)
     }
 
     console.log('发送到后端的数据:', { addresses: formattedAddresses })
@@ -176,6 +198,7 @@ export const batchSaveWalletData = async (walletDataList, options = {}) => {
     const addresses = walletDataList.map(wallet => ({
       address: wallet.walletAddress || wallet.holderWalletAddress,
       total_profit: parseFloat(wallet.totalProfit) || 0,
+      percent: parseFloat(wallet.totalProfitPercentage) || 0,
       count: 1,
       remark: wallet.remark || null
     }))
@@ -244,6 +267,7 @@ API接口数据格式说明：
     {
       "address": "4fJVpHzgaQ5F5BmFWpLrVf7zdmkYJccgcz6XMQo1pump",
       "total_profit": 125000.50,
+      "percent": 250.75,
       "count": 1,
       "remark": null
     }
@@ -277,12 +301,14 @@ CREATE TABLE smart_money_addresses (
   id INT PRIMARY KEY AUTO_INCREMENT,
   address VARCHAR(255) UNIQUE NOT NULL,
   total_profit DECIMAL(20,8) DEFAULT 0,
+  percent DECIMAL(10,4) DEFAULT 0,
   count INT DEFAULT 0,
   remark TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_address (address),
   INDEX idx_total_profit (total_profit),
+  INDEX idx_percent (percent),
   INDEX idx_updated_at (updated_at)
 );
 */ 
