@@ -3,12 +3,12 @@
     class="data-table" :sort-by="[{ key: 'totalProfit', order: 'desc' }]" :no-data-text="`暂无数据（已过滤买入金额小于$${props.minBuyValue}的数据）`"
     loading-text="加载中..." :items-per-page="-1" hide-default-footer show-select return-object>
     
-    <template v-slot:[`item.rank`]="{ index }">
+    <template v-slot:[`item.rank`]="{ item }">
       <div class="rank-cell">
-        <v-icon v-if="index === 0" icon="mdi-trophy" color="#FFD700" size="20" />
-        <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="18" />
-        <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="16" />
-        <span v-else class="rank-number">{{ index + 1 }}</span>
+        <v-icon v-if="item.rank === 1" icon="mdi-trophy" color="#FFD700" size="20" />
+        <v-icon v-else-if="item.rank === 2" icon="mdi-trophy" color="#C0C0C0" size="18" />
+        <v-icon v-else-if="item.rank === 3" icon="mdi-trophy" color="#CD7F32" size="16" />
+        <span v-else class="rank-number">{{ item.rank }}</span>
       </div>
     </template>
 
@@ -103,9 +103,12 @@ const tableHeaders = [
   { title: '盈利率', key: 'totalProfitPercentage', align: 'center', width: 120 },
 ]
 
-// 不需要在这里过滤，数据已经在 composable 中过滤过了
+// 处理数据，添加排名
 const filteredItems = computed(() => {
-  return props.items
+  return props.items.map((item, index) => ({
+    ...item,
+    rank: index + 1 // 添加排名字段
+  }))
 })
 
 // 本地选中项，用于双向绑定

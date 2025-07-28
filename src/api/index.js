@@ -63,6 +63,37 @@ export const contractAPI = {
         tokenContractAddress: tokenContractAddress
       }
     })
+  },
+
+  // 获取开发者分析数据
+  getDevAddress: (tokenContractAddress) => {
+    // 根据合约地址前缀判断链类型
+    const chainId = tokenContractAddress.startsWith('0x') ? '56' : '501' // BSC链ID: 56, Solana链ID: 501
+    
+    return service({
+      url: '/priapi/v1/dx/market/v2/dev/analysis-list',
+      method: 'get',
+      params: {
+        chainId: chainId,
+        tokenContractAddress: tokenContractAddress
+      }
+    })
+  },
+
+  // 获取开发者利润数据
+  getDevProfit: (tokenContractAddress, walletAddress) => {
+    // 根据合约地址前缀判断链类型
+    const chainId = tokenContractAddress.startsWith('0x') ? '56' : '501' // BSC链ID: 56, Solana链ID: 501
+    
+    return service({
+      url: '/priapi/v1/dx/market/v2/trading-history/statistics',
+      method: 'get',
+      params: {
+        chainId: chainId,
+        tokenAddress: tokenContractAddress,
+        walletAddress: walletAddress
+      }
+    })
   }
 }
 

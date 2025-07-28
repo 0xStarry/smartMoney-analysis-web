@@ -11,10 +11,16 @@
           </div>
         </div>
         <div class="d-flex align-center gap-2">
+          <!-- 开发者排行榜按钮 -->
+          <v-btn color="secondary" variant="outlined" prepend-icon="mdi-account-star" @click="openDevRankingDialog"
+            class="dev-ranking-btn">
+            <span class="btn-text">开发者排行榜</span>
+          </v-btn>
+          
           <!-- 排行榜按钮 -->
           <v-btn color="primary" variant="outlined" prepend-icon="mdi-trophy" @click="openRankingDialog"
             class="ranking-btn">
-            <span class="btn-text">排行榜</span>
+            <span class="btn-text">地址排行榜</span>
           </v-btn>
 
           <!-- 主题切换按钮 -->
@@ -104,6 +110,13 @@
       ref="rankingDialogRef"
     />
 
+    <!-- 开发者排行榜弹窗 -->
+    <DevRankingDialog 
+      v-model:visible="devRankingDialog" 
+      @show-message="showMessage"
+      ref="devRankingDialogRef"
+    />
+
     <!-- 加载遮罩 -->
     <v-overlay v-model="loading" class="align-center justify-center">
       <v-progress-circular color="primary" indeterminate size="64" />
@@ -133,6 +146,7 @@ import MobileCards from './components/MobileCards.vue'
 import WelcomeSection from './components/WelcomeSection.vue'
 import EmptyState from './components/EmptyState.vue'
 import RankingDialog from './components/RankingDialog.vue'
+import DevRankingDialog from './components/DevRankingDialog.vue'
 
 // 主题管理
 const theme = useTheme()
@@ -154,9 +168,11 @@ const {
 // 组件引用
 const searchFormRef = ref()
 const rankingDialogRef = ref()
+const devRankingDialogRef = ref()
 
 // 排行榜状态
 const rankingDialog = ref(false)
+const devRankingDialog = ref(false)
 
 // 消息提示
 const snackbar = reactive({
@@ -219,6 +235,14 @@ const openRankingDialog = () => {
   rankingDialog.value = true
   if (rankingDialogRef.value) {
     rankingDialogRef.value.loadRankingData()
+  }
+}
+
+// 开发者排行榜相关方法
+const openDevRankingDialog = () => {
+  devRankingDialog.value = true
+  if (devRankingDialogRef.value) {
+    devRankingDialogRef.value.loadDevRankingData()
   }
 }
 </script>
@@ -320,6 +344,15 @@ const openRankingDialog = () => {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+.dev-ranking-btn {
+  transition: all 0.3s ease;
+}
+
+.dev-ranking-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3);
+}
+
 /* 动画 */
 @keyframes fadeInUp {
   from {
@@ -360,6 +393,10 @@ const openRankingDialog = () => {
   }
 
   .ranking-btn .btn-text {
+    display: none;
+  }
+
+  .dev-ranking-btn .btn-text {
     display: none;
   }
 }

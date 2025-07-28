@@ -1,5 +1,5 @@
 import { ref, reactive, computed, watch } from 'vue'
-import { contractAPI } from '../api'
+import { contractAPI} from '../api'
 import { batchSaveSmartMoneyAddresses } from '../api/database'
 import { createToken, checkTokenExists } from '../api/tokens'
 
@@ -56,7 +56,48 @@ export function useSmartMoneyApp() {
       ])
 
       if (response.data && response.data.list) {
-        const profitableAddresses = response.data.list.filter(item => {
+        // 调试：打印原始API数据结构
+        console.log('OKX API原始数据结构:', response.data.list[0])
+        
+        // 数据映射：将OKX API字段映射到前端期望的字段
+        const mappedData = response.data.list.map(item => {
+          // 获取钱包地址
+          const walletAddress = item.holderWalletAddress || item.walletAddress || item.address || item.holder || ''
+          
+          // 尝试不同的字段名映射
+          return {
+            // 钱包地址映射
+            holderWalletAddress: walletAddress,
+            
+            // 买入金额映射  
+            buyValue: item.buyValue || item.buy_value || item.buyAmount || item.totalBuyValue || 0,
+            
+            // 卖出金额映射
+            sellValue: item.sellValue || item.sell_value || item.sellAmount || item.totalSellValue || 0,
+            
+            // 总盈利映射
+            totalProfit: item.totalProfit || item.total_profit || item.profit || item.pnl || item.realizedPnl || 0,
+            
+            // 盈利率映射
+            totalProfitPercentage: item.totalProfitPercentage || item.profitPercentage || item.profit_percentage || item.pnlPercentage || item.roiPercentage || 0,
+            
+            // 买入均价映射
+            boughtAvgPrice: item.boughtAvgPrice || item.avgBuyPrice || item.buy_avg_price || item.avgCost || 0,
+            
+            // 卖出均价映射
+            soldAvgPrice: item.soldAvgPrice || item.avgSellPrice || item.sell_avg_price || item.avgSellPx || 0,
+            
+            // 浏览器链接映射
+            explorerUrl: item.explorerUrl || item.explorer_url || (walletAddress ? `https://solscan.io/account/${walletAddress}` : ''),
+            
+            // 保留原始数据
+            ...item
+          }
+        })
+        
+        console.log('映射后的数据结构:', mappedData[0])
+        
+        const profitableAddresses = mappedData.filter(item => {
           const profit = parseFloat(item.totalProfit) || 0
           return profit > 0
         })
@@ -114,8 +155,25 @@ export function useSmartMoneyApp() {
         return { success: false, message: '没有盈利地址可以保存' }
       }
 
+      // 获取开发者地址
+      const devResponse = await contractAPI.getDevAddress(contractAddress)
+      const devAddress = devResponse.data?.devAnalysisSummaryVO?.creatorAddress || ''
+
+      // 获取开发者利润数据
+      let devProfit = 0
+      if (devAddress) {
+        try {
+          const devProfitResponse = await contractAPI.getDevProfit(contractAddress, devAddress)
+          devProfit = parseFloat(devProfitResponse.data?.totalProfit) || 0
+          console.log('开发者利润金额:', devProfit)
+        } catch (error) {
+          console.error('获取开发者利润失败:', error)
+          // 继续执行保存流程，即使获取利润失败
+        }
+      }
+
       const response = await batchSaveSmartMoneyAddresses(addressesToSave)
-      await createToken(contractAddress)
+      await createToken(contractAddress, devAddress, devProfit)
       tokenExists.value = true
 
       const processedCount = response.data?.count || selectedItems.value.length

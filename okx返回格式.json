@@ -1,0 +1,60 @@
+{
+    "code": 0,
+    "data": {
+      "list":[{
+        "boughtAvgPrice": "0.000057528373162148",
+        "buyCount": "4",
+        "buyValue": "91.634399999999507022",
+        "chainId": "501",
+        "explorerUrl": "https://solscan.io/account/8BoJeDk1gDY14uunefjG5nvpLimTcB1GaQPhXTmgeyfy",
+        "extraOne": "0",
+        "fundingSourceAddress": "WLHv2UAZm6z4KyaaELi5pjdbJh6RESMva1Rnn8pJVVh",
+        "fundingSourceAddressShowName": "",
+        "fundingSourceTime": "1753641417000",
+        "holdAmount": "0",
+        "holdAmountPercentage": "0.000000000000000000",
+        "holdAvgPrice": "0",
+        "holdCreateTime": "1633206502000",
+        "holdVolume": "0",
+        "holderWalletAddress": "8BoJeDk1gDY14uunefjG5nvpLimTcB1GaQPhXTmgeyfy",
+        "holdingTime": "1753728253",
+        "lastTradeTime": "1753730126000",
+        "nativeTokenBalance": "6.756973732",
+        "nativeTokenHoldTime": "1753730126000",
+        "nativeTokenPrice": "183.630255715873049808",
+        "realizedProfit": "2.092823790099449777188944084",
+        "realizedProfitPercentage": "2.28",
+        "sellCount": "1",
+        "sellValue": "93.727223790099348223",
+        "soldAvgPrice": "0.000058842254717103",
+        "spotBalance": "",
+        "t": [
+          {
+            "e": {
+
+            },
+            "k": "tradingBot_Gmgn Bot",
+            "m": 1
+          }
+        ],
+        "tagList": [
+          [
+            "tradingBot_Gmgn Bot"
+          ]
+        ],
+        "tokenContractAddress": "9dnDqvCTfaP4hsiVF9PeroZxsf313nkCaarpFg7Amoon",
+        "totalProfit": "2.092823790099449777188944084",
+        "totalProfitPercentage": "2.28",
+        "unrealizedProfit": "0.000000000000000000",
+        "unrealizedProfitPercentage": "0"
+      }],
+      "pageNum": 0,
+      "pageSize": 0,
+      "t": 0,
+      "totalPage": 0
+    },
+    "detailMsg": "",
+    "error_code": "0",
+    "error_message": "",
+    "msg": ""
+  }

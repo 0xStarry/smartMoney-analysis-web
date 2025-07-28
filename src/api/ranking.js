@@ -34,7 +34,7 @@ rankingAPI.interceptors.response.use(
         success: true,
         data: data.data,
         message: data.msg,
-        code: data.code
+        ...data
       }
     } else {
       // 业务错误
@@ -46,7 +46,7 @@ rankingAPI.interceptors.response.use(
   },
   (error) => {
     console.error('排行榜API请求失败:', error)
-    // 网络错误处理
+    // 网络错误或HTTP错误
     if (error.response && error.response.data) {
       const errorData = error.response.data
       error.message = errorData.msg || errorData.error_message || error.message
@@ -56,56 +56,106 @@ rankingAPI.interceptors.response.use(
 )
 
 /**
- * 获取聪明钱地址排行榜
+ * 获取收益排行榜（支持分页和排序）
  * @param {Object} params - 查询参数
- * @param {number} params.limit - 返回条数，默认50
  * @param {number} params.page - 页码，默认1
- * @param {string} params.sortBy - 排序字段，默认total_profit
- * @param {string} params.sortOrder - 排序方向，默认DESC
+ * @param {number} params.pageSize - 每页条数，默认20
+ * @param {string} params.sortBy - 排序字段
+ * @param {string} params.sortOrder - 排序方向：DESC/ASC
+ * @param {string} params.chainType - 链类型：all/solana/bsc
+ * @param {number} params.minCount - 最小暴击次数
  * @returns {Promise} API响应
  */
-export const getRanking = async (params = {}) => {
+export const getProfitRanking = async (params = {}) => {
   try {
-    const response = await rankingAPI.get('/smart-money', {
+    const response = await rankingAPI.get('/smart-money/ranking/profit', {
       params: {
-        limit: params.limit || 50,
         page: params.page || 1,
+        pageSize: params.pageSize || 20,
         sortBy: params.sortBy || 'total_profit',
         sortOrder: params.sortOrder || 'DESC',
+        chainType: params.chainType || 'all',
+        minCount: params.minCount || 1,
         ...params
       }
     })
     return response
   } catch (error) {
-    throw new Error(`获取排行榜失败: ${error.message}`)
+    throw new Error(`获取收益排行榜失败: ${error.message}`)
   }
 }
 
 /**
- * 获取暴击排行榜
+ * 获取暴击次数排行榜（支持分页和排序）
  * @param {Object} params - 查询参数
- * @param {number} params.limit - 返回条数，默认50
- * @param {number} params.offset - 偏移量，默认0
- * @param {string} params.timeRange - 时间范围：'24h', '7d', '30d', 'all'
- * @param {number} params.minMultiplier - 最小暴击倍数，默认10
  * @returns {Promise} API响应
  */
-export const getCriticalRanking = async (params = {}) => {
+export const getCountRanking = async (params = {}) => {
   try {
-    const response = await rankingAPI.get('/ranking/critical', {
+    const response = await rankingAPI.get('/smart-money/ranking/count', {
       params: {
-        limit: params.limit || 50,
-        offset: params.offset || 0,
-        timeRange: params.timeRange || '24h',
-        minMultiplier: params.minMultiplier || 10,
+        page: params.page || 1,
+        pageSize: params.pageSize || 20,
+        sortBy: params.sortBy || 'count',
+        sortOrder: params.sortOrder || 'DESC',
+        chainType: params.chainType || 'all',
+        minCount: params.minCount || 1,
         ...params
       }
     })
     return response
   } catch (error) {
-    throw new Error(`获取暴击排行榜失败: ${error.message}`)
+    throw new Error(`获取暴击次数排行榜失败: ${error.message}`)
   }
 }
+
+/**
+ * 获取收益百分比排行榜（支持分页和排序）
+ * @param {Object} params - 查询参数
+ * @returns {Promise} API响应
+ */
+export const getPercentRanking = async (params = {}) => {
+  try {
+    const response = await rankingAPI.get('/smart-money/ranking/percent', {
+      params: {
+        page: params.page || 1,
+        pageSize: params.pageSize || 20,
+        sortBy: params.sortBy || 'percent',
+        sortOrder: params.sortOrder || 'DESC',
+        chainType: params.chainType || 'all',
+        minCount: params.minCount || 1,
+        ...params
+      }
+    })
+    return response
+  } catch (error) {
+    throw new Error(`获取收益百分比排行榜失败: ${error.message}`)
+  }
+}
+
+/**
+ * 通用排行榜获取方法
+ * @param {string} type - 排行榜类型：profit/count/percent
+ * @param {Object} params - 查询参数
+ * @returns {Promise} API响应
+ */
+export const getRankingByType = async (type, params = {}) => {
+  const apiMap = {
+    profit: getProfitRanking,
+    count: getCountRanking,
+    percent: getPercentRanking
+  }
+  
+  const apiFunction = apiMap[type]
+  if (!apiFunction) {
+    throw new Error(`不支持的排行榜类型: ${type}`)
+  }
+  
+  return await apiFunction(params)
+}
+
+// 兼容旧接口（保持向后兼容）
+export const getRanking = getProfitRanking
 
 /**
  * 更新聪明钱地址记录
@@ -113,10 +163,19 @@ export const getCriticalRanking = async (params = {}) => {
  * @param {Object} updateData - 更新数据
  * @returns {Promise} API响应
  */
-export const updateSmartMoneyAddress = async (id, updateData) => {
+export const updateSmartMoneyAddress = async (id, data) => {
   try {
-    const response = await rankingAPI.put(`/smart-money/${id}`, updateData)
-    return response
+    // 如果只是更新备注，使用新的PATCH接口
+    if (data.remark !== undefined && Object.keys(data).length === 1) {
+      const response = await rankingAPI.patch(`/smart-money/${id}/remark`, {
+        remark: data.remark
+      })
+      return response
+    } else {
+      // 其他更新使用原来的PUT接口
+      const response = await rankingAPI.put(`/smart-money/${id}`, data)
+      return response
+    }
   } catch (error) {
     throw new Error(`更新聪明钱地址失败: ${error.message}`)
   }

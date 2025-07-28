@@ -12,7 +12,7 @@
 
       <v-card-text class="pa-4">
         <div class="d-flex justify-space-between align-center mb-4">
-          <h3 class="ranking-title">排行榜</h3>
+          <h3 class="ranking-title">钱包排行榜</h3>
           <div class="d-flex align-center gap-2 flex-wrap">
             <!-- 链类型筛选 -->
             <v-chip-group v-model="selectedChainType" selected-class="text-primary" class="chain-filter">
@@ -71,17 +71,24 @@
 
         <!-- 桌面端排行榜表格 -->
         <div class="desktop-ranking">
-          <v-data-table :headers="rankingHeaders" :items="filteredRankingData" :loading="rankingLoading" class="ranking-table"
-            :sort-by="[{ key: 'totalProfit', order: 'desc' }]" 
+          <v-data-table 
+            :headers="rankingHeaders" 
+            :items="processedRankingData" 
+            :loading="rankingLoading" 
+            class="ranking-table"
+            :sort-by="sortBy"
             :no-data-text="`暂无排行榜数据${minCountFilter > 1 ? ` (已过滤暴击倍数小于${minCountFilter}x的数据)` : ''}`" 
             loading-text="加载中..."
-            :items-per-page="20" :items-per-page-options="[10, 20, 50, 100]">
-            <template v-slot:[`item.rank`]="{ index }">
+            :items-per-page="-1"
+            hide-default-footer
+            @update:options="handleOptionsUpdate"
+          >
+            <template v-slot:[`item.rank`]="{ item }">
               <div class="rank-cell">
-                <v-icon v-if="index === 0" icon="mdi-trophy" color="#FFD700" size="24" />
-                <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="22" />
-                <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="20" />
-                <span v-else class="rank-number">{{ index + 1 }}</span>
+                <v-icon v-if="item.rank === 1" icon="mdi-trophy" color="#FFD700" size="24" />
+                <v-icon v-else-if="item.rank === 2" icon="mdi-trophy" color="#C0C0C0" size="22" />
+                <v-icon v-else-if="item.rank === 3" icon="mdi-trophy" color="#CD7F32" size="20" />
+                <span v-else class="rank-number">{{ item.rank }}</span>
               </div>
             </template>
 
@@ -93,20 +100,20 @@
               </div>
             </template>
 
-            <template v-slot:[`item.walletAddress`]="{ item }">
+            <template v-slot:[`item.address`]="{ item }">
               <div class="address-container">
-                <span class="address-text" @click="copyAddress(item.walletAddress)">
-                  {{ formatAddress(item.walletAddress) }}
+                <span class="address-text" @click="copyAddress(item.address)">
+                  {{ formatAddress(item.address) }}
                 </span>
-                <v-btn icon="mdi-content-copy" variant="text" size="small" @click="copyAddress(item.walletAddress)"
+                <v-btn icon="mdi-content-copy" variant="text" size="small" @click="copyAddress(item.address)"
                   class="action-btn" />
               </div>
             </template>
 
-            <template v-slot:[`item.totalProfit`]="{ item }">
+            <template v-slot:[`item.total_profit`]="{ item }">
               <div class="profit-cell">
-                <span :class="getProfitClass(item.totalProfit)" class="profit-amount">
-                  ${{ formatProfit(item.totalProfit) }}
+                <span :class="getProfitClass(item.total_profit)" class="profit-amount">
+                  ${{ formatProfit(item.total_profit) }}
                 </span>
               </div>
             </template>
@@ -119,10 +126,10 @@
               </div>
             </template>
 
-            <template v-slot:[`item.avgProfitRate`]="{ item }">
+            <template v-slot:[`item.percent`]="{ item }">
               <div class="profit-rate-cell">
                 <v-chip color="info" size="small" variant="flat" prepend-icon="mdi-percent">
-                  {{ item.avgProfitRate }}%
+                  {{ parseFloat(item.percent || 0).toFixed(2) }}%
                 </v-chip>
               </div>
             </template>
@@ -136,10 +143,20 @@
                 </v-chip>
 
                 <div v-else class="remark-edit">
-                  <v-text-field v-model="item.editingRemark" variant="outlined" density="compact" placeholder="输入备注信息"
-                    hide-details :loading="item.savingRemark" :disabled="item.savingRemark"
-                    @keyup.enter="saveRemark(item)" @keyup.esc="cancelEditRemark(item)" @blur="saveRemark(item)"
-                    class="remark-input" autofocus />
+                  <v-text-field 
+                    :model-value="getEditingRemark(item)" 
+                    @update:model-value="updateEditingRemark(item, $event)"
+                    variant="outlined" 
+                    density="compact" 
+                    placeholder="输入备注信息"
+                    hide-details 
+                    :loading="item.savingRemark" 
+                    :disabled="item.savingRemark"
+                    @keyup.enter="saveRemark(item)" 
+                    @keyup.esc="cancelEditRemark(item)" 
+                    @blur="saveRemark(item)"
+                    class="remark-input" 
+                    autofocus />
                   <div class="remark-actions">
                     <v-btn icon="mdi-check" variant="text" size="small" color="success" :loading="item.savingRemark"
                       :disabled="item.savingRemark" @mousedown.prevent @click="saveRemark(item)" />
@@ -157,29 +174,61 @@
               </div>
             </template>
           </v-data-table>
+          
+          <!-- 桌面端分页器 -->
+          <div class="desktop-pagination mt-4" v-if="pagination.total > 0">
+            <v-row class="align-center">
+              <v-col cols="auto">
+                <v-select
+                  v-model="pagination.pageSize"
+                  :items="[10, 20, 50, 100]"
+                  label="每页条数"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  @update:model-value="handlePageSizeChange"
+                  style="width: 120px;"
+                />
+              </v-col>
+              <v-col>
+                <v-pagination
+                  v-model="pagination.page"
+                  :length="pagination.totalPages"
+                  :total-visible="7"
+                  @update:model-value="handlePageChange"
+                  class="justify-center"
+                />
+              </v-col>
+              <v-col cols="auto">
+                <v-chip size="small" variant="outlined">
+                  第 {{ pagination.page }} / {{ pagination.totalPages }} 页，共 {{ pagination.total }} 条
+                </v-chip>
+              </v-col>
+            </v-row>
+          </div>
         </div>
 
         <!-- 移动端排行榜卡片 -->
         <div class="mobile-ranking">
-          <v-card v-for="(item, index) in filteredRankingData" :key="item.walletAddress" class="ranking-card ma-2"
+          <v-card v-for="item in processedRankingData" :key="item.address" class="ranking-card ma-2"
             elevation="2" rounded="lg">
             <v-card-title class="ranking-card-header">
               <div class="d-flex align-center">
                 <div class="rank-badge me-3">
-                  <v-icon v-if="index === 0" icon="mdi-trophy" color="#FFD700" size="20" />
-                  <v-icon v-else-if="index === 1" icon="mdi-trophy" color="#C0C0C0" size="18" />
-                  <v-icon v-else-if="index === 2" icon="mdi-trophy" color="#CD7F32" size="16" />
-                  <span v-else class="rank-text">#{{ index + 1 }}</span>
+                  <v-icon v-if="item.rank === 1" icon="mdi-trophy" color="#FFD700" size="20" />
+                  <v-icon v-else-if="item.rank === 2" icon="mdi-trophy" color="#C0C0C0" size="18" />
+                  <v-icon v-else-if="item.rank === 3" icon="mdi-trophy" color="#CD7F32" size="16" />
+                  <span v-else class="rank-text">#{{ item.rank }}</span>
                 </div>
                 <div class="address-info">
-                  <span class="address-short" @click="copyAddress(item.walletAddress)">
-                    {{ formatAddress(item.walletAddress) }}
+                  <span class="address-short" @click="copyAddress(item.address)">
+                    {{ formatAddress(item.address) }}
                   </span>
                 </div>
               </div>
               <div class="profit-badge">
-                <span :class="getProfitClass(item.totalProfit)" class="profit-value">
-                  ${{ formatProfit(item.totalProfit) }}
+                <span :class="getProfitClass(item.total_profit)" class="profit-value">
+                  ${{ formatProfit(item.total_profit) }}
                 </span>
               </div>
             </v-card-title>
@@ -199,12 +248,12 @@
                   </v-chip>
                 </v-col>
                 <v-col cols="4">
-                  <v-chip size="small" variant="outlined" class="mb-1">平均盈利率</v-chip>
+                  <v-chip size="small" variant="outlined" class="mb-1">收益百分比</v-chip>
                   <v-chip color="info" size="small" variant="flat" prepend-icon="mdi-percent">
-                    {{ item.avgProfitRate }}%
+                    {{ parseFloat(item.percent || 0).toFixed(2) }}%
                   </v-chip>
                 </v-col>
-                <v-col cols="4">
+                <v-col cols="12">
                   <v-chip size="small" variant="outlined" class="mb-1">更新时间</v-chip>
                   <div class="data-value">{{ formatDate(item.updatedAt) }}</div>
                 </v-col>
@@ -218,9 +267,18 @@
                     </v-chip>
                   </div>
                   <div v-else class="mobile-remark-edit">
-                    <v-text-field v-model="item.editingRemark" variant="outlined" density="compact"
-                      placeholder="输入备注信息" hide-details :loading="item.savingRemark" :disabled="item.savingRemark"
-                      @keyup.enter="saveRemark(item)" @keyup.esc="cancelEditRemark(item)" @blur="saveRemark(item)"
+                    <v-text-field 
+                      :model-value="getEditingRemark(item)" 
+                      @update:model-value="updateEditingRemark(item, $event)"
+                      variant="outlined" 
+                      density="compact"
+                      placeholder="输入备注信息" 
+                      hide-details 
+                      :loading="item.savingRemark" 
+                      :disabled="item.savingRemark"
+                      @keyup.enter="saveRemark(item)" 
+                      @keyup.esc="cancelEditRemark(item)" 
+                      @blur="saveRemark(item)"
                       autofocus />
                     <div class="remark-actions mt-2">
                       <v-btn color="success" variant="outlined" size="small" prepend-icon="mdi-check"
@@ -247,6 +305,21 @@
               </v-row>
             </v-card-text>
           </v-card>
+          
+          <!-- 移动端分页器 -->
+          <div class="mobile-pagination mt-4" v-if="pagination.total > 0">
+            <v-pagination
+              v-model="pagination.page"
+              :length="pagination.totalPages"
+              :total-visible="5"
+              @update:model-value="handlePageChange"
+            />
+            <div class="pagination-info text-center mt-2">
+              <v-chip size="small" variant="outlined">
+                第 {{ pagination.page }} / {{ pagination.totalPages }} 页，共 {{ pagination.total }} 条
+              </v-chip>
+            </div>
+          </div>
         </div>
       </v-card-text>
     </v-card>
@@ -254,9 +327,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, defineProps, defineEmits } from 'vue'
+import { ref, reactive, computed, defineProps, defineEmits, watch, triggerRef } from 'vue'
 import { formatAddress, formatDate } from '../utils'
-import { getRanking, updateSmartMoneyAddress, deleteSmartMoneyAddress as deleteAddressAPI } from '../api/ranking'
+import { getProfitRanking, getCountRanking, getPercentRanking, updateSmartMoneyAddress, deleteSmartMoneyAddress as deleteAddressAPI } from '../api/ranking'
 
 // 定义 props
 const props = defineProps({
@@ -272,20 +345,32 @@ const emit = defineEmits(['update:visible', 'showMessage'])
 // 排行榜表格头部配置
 const rankingHeaders = [
   { title: '排名', key: 'rank', align: 'center', width: 80, sortable: false },
-  { title: '链', key: 'chainType', align: 'center', width: 100, sortable: true },
-  { title: '钱包地址', key: 'walletAddress', align: 'start', minWidth: 220, sortable: false },
-  { title: '总盈利 (USD)', key: 'totalProfit', align: 'end', minWidth: 160, sortable: true },
+  { title: '链', key: 'chainType', align: 'center', width: 100, sortable: false },
+  { title: '钱包地址', key: 'address', align: 'start', minWidth: 220, sortable: false },
+  { title: '总盈利 (USD)', key: 'total_profit', align: 'end', minWidth: 160, sortable: true },
   { title: '暴击倍数', key: 'count', align: 'center', width: 120, sortable: true },
-  { title: '平均盈利率', key: 'avgProfitRate', align: 'center', width: 130, sortable: true },
+  { title: '收益百分比', key: 'percent', align: 'center', width: 130, sortable: true },
   { title: '备注', key: 'remark', align: 'start', minWidth: 200, sortable: false },
   { title: '操作', key: 'actions', align: 'center', width: 100, sortable: false },
 ]
 
-// 排行榜数据
+// 排行榜数据和状态
 const rankingData = ref([])
-
-// 排行榜状态
 const rankingLoading = ref(false)
+const editStates = ref(new Map()) // 维护编辑状态
+
+// 分页状态
+const pagination = reactive({
+  page: 1,
+  pageSize: 20,
+  total: 0,
+  totalPages: 0
+})
+
+// 排序状态
+const sortBy = ref([{ key: 'total_profit', order: 'desc' }])
+
+// 筛选状态
 const selectedChainType = ref('all') // 选中的链类型：all, solana, bsc
 const minCountFilter = ref(1) // 最小暴击倍数筛选
 
@@ -295,22 +380,49 @@ const dialogVisible = computed({
   set: (value) => emit('update:visible', value)
 })
 
-// 计算属性：根据链类型和暴击倍数筛选排行榜数据
-const filteredRankingData = computed(() => {
-  let filteredData = rankingData.value
-
-  // 按链类型筛选
-  if (selectedChainType.value !== 'all') {
-    filteredData = filteredData.filter(item => item.chainType === selectedChainType.value)
-  }
-
-  // 按暴击倍数筛选
-  filteredData = filteredData.filter(item => {
-    const count = parseInt(item.count) || 0
-    return count >= minCountFilter.value
+// 计算属性：处理排行榜数据，添加排名和链类型
+const processedRankingData = computed(() => {
+  return rankingData.value.map((item, index) => {
+    const walletAddress = item.address || item.walletAddress
+    const chainType = getChainType(walletAddress)
+    
+    // 计算全局排名（考虑分页）
+    const globalRank = (pagination.page - 1) * pagination.pageSize + index + 1
+    
+    // 获取或创建编辑状态
+    const itemId = item.id || walletAddress
+    const existingState = editStates.value.get(itemId) || {
+      isEditingRemark: false,
+      editingRemark: '',
+      savingRemark: false,
+      deleting: false
+    }
+    
+    const processedItem = {
+      ...item,
+      // 统一字段名
+      walletAddress: walletAddress,
+      address: walletAddress,
+      totalProfit: item.total_profit || item.totalProfit,
+      percent: item.percent || 0,
+      count: item.count || 0,
+      remark: item.remark || '',
+      updatedAt: item.updated_at || item.updatedAt,
+      // 添加链类型和排名
+      chainType: chainType,
+      rank: globalRank,
+      // 使用持久化的编辑状态
+      ...existingState
+    }
+    
+    return processedItem
   })
+})
 
-  return filteredData
+// 监听筛选条件变化
+watch([selectedChainType, minCountFilter], () => {
+  pagination.page = 1 // 重置到第一页
+  loadRankingData()
 })
 
 // 显示消息
@@ -370,8 +482,6 @@ const getProfitClass = (profit) => {
   return num >= 0 ? 'profit-positive' : 'profit-negative'
 }
 
-
-
 // 复制地址
 const copyAddress = async (address) => {
   try {
@@ -391,58 +501,81 @@ const closeDialog = () => {
 const resetFilters = () => {
   selectedChainType.value = 'all'
   minCountFilter.value = 1
+  pagination.page = 1
+  loadRankingData()
   showMessage('筛选条件已重置', 'info')
+}
+
+// 处理表格选项变化（主要用于排序）
+const handleOptionsUpdate = (options) => {
+  let shouldReload = false
+  
+  // 处理排序变化
+  if (options.sortBy && JSON.stringify(options.sortBy) !== JSON.stringify(sortBy.value)) {
+    sortBy.value = options.sortBy
+    pagination.page = 1 // 重置到第一页
+    shouldReload = true
+  }
+  
+  if (shouldReload) {
+    loadRankingData()
+  }
+}
+
+// 处理移动端分页变化
+const handlePageChange = (newPage) => {
+  pagination.page = newPage
+  loadRankingData()
+}
+
+// 处理每页条数变化
+const handlePageSizeChange = (newSize) => {
+  pagination.pageSize = newSize
+  pagination.page = 1 // 重置到第一页
+  loadRankingData()
+}
+
+// 固定使用收益排行榜API
+const getRankingAPI = () => {
+  return getProfitRanking
 }
 
 // 加载排行榜数据
 const loadRankingData = async () => {
   rankingLoading.value = true
   try {
-    // 调用真实API接口
-    const response = await getRanking({
-      limit: 9999,
-      page: 1,
-      sortBy: 'total_profit',
-      sortOrder: 'DESC'
-    })
+    // 构建查询参数
+    const params = {
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      chainType: selectedChainType.value,
+      minCount: minCountFilter.value
+    }
+
+    // 处理排序参数
+    if (sortBy.value && sortBy.value.length > 0) {
+      const sort = sortBy.value[0]
+      params.sortBy = sort.key
+      params.sortOrder = sort.order.toUpperCase()
+    }
+
+    // 调用对应的API
+    const apiMethod = getRankingAPI()
+    const response = await apiMethod(params)
 
     if (response.success && response.data) {
-      // 处理返回的数据，添加编辑状态字段
-      const processedData = (response.data.list || response.data).map(item => {
-        const walletAddress = item.address || item.walletAddress
-        const chainType = getChainType(walletAddress)
-        
-        const percent = item.percent || 0
-        const count = item.count || 0
-        
-        return {
-          ...item,
-          // 统一字段名
-          walletAddress: walletAddress,
-          totalProfit: item.total_profit || item.totalProfit,
-          percent: percent,
-          count: count,
-          remark: item.remark || '',
-          updatedAt: item.updated_at || item.updatedAt,
-          // 计算平均盈利率并添加到数据中，用于排序
-          avgProfitRate: count > 0 ? parseFloat((percent / count).toFixed(2)) : 0,
-          // 添加链类型
-          chainType: chainType,
-          // 添加编辑状态
-          isEditingRemark: false,
-          editingRemark: '',
-          // 添加保存和删除状态
-          savingRemark: false,
-          deleting: false
-        }
-      })
+      rankingData.value = response.data.list || []
+      
 
-      rankingData.value = processedData
+      
+      // 更新分页信息
+      pagination.page = response.data.pageNum || params.page
+      pagination.pageSize = response.data.pageSize || params.pageSize
+      pagination.total = response.data.t || 0
+      pagination.totalPages = response.data.totalPage || 0
 
       // 显示成功消息
-      const total = response.data.total || response.data.pagination?.total || processedData.length
-      const filteredCount = filteredRankingData.value.length
-      showMessage(`排行榜加载成功，共 ${processedData.length} 条数据${filteredCount < processedData.length ? `，当前显示 ${filteredCount} 条` : ''}${total ? ` (总计 ${total} 条)` : ''}`, 'success')
+      showMessage(`排行榜加载成功，共 ${pagination.total} 条数据，当前第 ${pagination.page}/${pagination.totalPages} 页`, 'success')
     } else {
       rankingData.value = []
       showMessage('未获取到排行榜数据', 'warning')
@@ -458,33 +591,92 @@ const loadRankingData = async () => {
 
 // 编辑备注
 const startEditRemark = (item) => {
-  item.isEditingRemark = true
-  item.editingRemark = item.remark || ''
+  console.log('🖊️ 开始编辑备注:')
+  console.log('- item对象:', item)
+  console.log('- item.id:', item.id)
+  console.log('- item.address:', item.address)
+  console.log('- item.remark:', item.remark)
+  
+  const itemId = item.id || item.address
+  console.log('- 使用的itemId:', itemId)
+  
+  const state = editStates.value.get(itemId) || {}
+  console.log('- 编辑前state:', state)
+  
+  state.isEditingRemark = true
+  state.editingRemark = item.remark || ''
+  editStates.value.set(itemId, state)
+  
+  console.log('- 编辑后state:', state)
+  console.log('- editStates当前状态:', Object.fromEntries(editStates.value))
+  
+  // 强制触发响应式更新
+  triggerRef(editStates)
+}
+
+const getEditingRemark = (item) => {
+  const itemId = item.id || item.address
+  const state = editStates.value.get(itemId)
+  return state?.editingRemark || item.remark || ''
+}
+
+const updateEditingRemark = (item, value) => {
+  const itemId = item.id || item.address
+  const state = editStates.value.get(itemId) || {}
+  state.editingRemark = value
+  editStates.value.set(itemId, state)
+  triggerRef(editStates)
 }
 
 const saveRemark = async (item) => {
+  const itemId = item.id || item.address
+  const state = editStates.value.get(itemId)
+  
+
+  
   // 如果正在保存中，避免重复保存
-  if (item.savingRemark) {
+  if (state?.savingRemark) {
     return
   }
 
-  const newRemark = item.editingRemark.trim()
+  const newRemark = (state?.editingRemark || '').trim()
 
   // 如果备注没有变化，直接退出编辑模式
   if (newRemark === (item.remark || '')) {
-    item.isEditingRemark = false
+    if (state) {
+      state.isEditingRemark = false
+      editStates.value.set(itemId, state)
+      triggerRef(editStates)
+    }
     return
   }
 
   try {
     // 设置保存状态
-    item.savingRemark = true
+    if (state) {
+      state.savingRemark = true
+      editStates.value.set(itemId, state)
+      triggerRef(editStates)
+    }
 
+    console.log('🚀 调用API更新备注 - ID:', item.id, '新备注:', newRemark)
+    
     // 调用API更新备注
-    await updateSmartMoneyAddress(item.id, { remark: newRemark })
+    const response = await updateSmartMoneyAddress(item.id, { remark: newRemark })
 
-    item.remark = newRemark
-    item.isEditingRemark = false
+    // 更新原始数据中的备注
+    const originalItem = rankingData.value.find(data => (data.id || data.address) === itemId)
+    if (originalItem) {
+      originalItem.remark = newRemark
+    }
+
+    // 退出编辑模式
+    if (state) {
+      state.isEditingRemark = false
+      editStates.value.set(itemId, state)
+      triggerRef(editStates)
+    }
+    
     showMessage('备注更新成功', 'success')
   } catch (error) {
     console.error('更新备注失败:', error)
@@ -494,43 +686,61 @@ const saveRemark = async (item) => {
   } finally {
     // 延迟重置保存状态，避免快速连续操作
     setTimeout(() => {
-      item.savingRemark = false
+      if (state) {
+        state.savingRemark = false
+        editStates.value.set(itemId, state)
+        triggerRef(editStates)
+      }
     }, 100)
   }
 }
 
 const cancelEditRemark = (item) => {
-  // 恢复原始备注内容
-  item.editingRemark = item.remark || ''
-  item.isEditingRemark = false
-  item.savingRemark = false
+  const itemId = item.id || item.address
+  const state = editStates.value.get(itemId)
+  
+  if (state) {
+    // 恢复原始备注内容
+    state.editingRemark = item.remark || ''
+    state.isEditingRemark = false
+    state.savingRemark = false
+    editStates.value.set(itemId, state)
+    triggerRef(editStates)
+  }
 }
 
 // 删除聪明钱地址
 const deleteSmartMoneyAddress = async (item) => {
-  if (!confirm(`确定要删除地址 ${formatAddress(item.walletAddress)} 吗？`)) {
+  if (!confirm(`确定要删除地址 ${formatAddress(item.address)} 吗？`)) {
     return
   }
 
+  const itemId = item.id || item.address
+  const state = editStates.value.get(itemId) || {}
+
   try {
     // 设置删除状态
-    item.deleting = true
+    state.deleting = true
+    editStates.value.set(itemId, state)
+    triggerRef(editStates)
 
     // 调用删除API
     await deleteAddressAPI(item.id)
 
-    // 从列表中移除
-    const index = rankingData.value.findIndex(data => data.id === item.id)
-    if (index > -1) {
-      rankingData.value.splice(index, 1)
-    }
+    // 清除编辑状态
+    editStates.value.delete(itemId)
+
+    // 重新加载当前页数据
+    await loadRankingData()
 
     showMessage('地址删除成功', 'success')
   } catch (error) {
     console.error('删除地址失败:', error)
     showMessage(`删除失败: ${error.message}`, 'error')
   } finally {
-    item.deleting = false
+    state.deleting = false
+    editStates.value.set(itemId, state)
+    triggerRef(editStates)
   }
 }
 
@@ -777,6 +987,26 @@ defineExpose({
 .remark-actions {
   display: flex;
   gap: 5px;
+}
+
+/* 移动端分页器 */
+.mobile-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pagination-info {
+  opacity: 0.7;
+}
+
+/* 桌面端分页器 */
+.desktop-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 /* 排行榜响应式设计 */

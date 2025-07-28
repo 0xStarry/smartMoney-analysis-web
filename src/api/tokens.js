@@ -58,12 +58,15 @@ tokenAPI.interceptors.response.use(
 /**
  * 创建代币地址
  * @param {string} contractAddress - 合约地址
+ * @param {string} devAddress - 开发者地址
  * @returns {Promise} API响应
  */
-export const createToken = async (contractAddress) => {
+export const createToken = async (contractAddress, devAddress, devProfit) => {
   try {
     const response = await tokenAPI.post('/tokens', {
-      contract_address: contractAddress
+      contract_address: contractAddress,
+      dev_address: devAddress,
+      dev_profit: devProfit
     })
     return response
   } catch (error) {
@@ -149,7 +152,8 @@ API接口数据格式说明：
 1. 创建代币地址接口 (POST /tokens)
 请求参数：
 {
-  "contract_address": "4fJVpHzgaQ5F5BmFWpLrVf7zdmkYJccgcz6XMQo1pump"
+  "contract_address": "4fJVpHzgaQ5F5BmFWpLrVf7zdmkYJccgcz6XMQo1pump",
+  "dev_address": "M8CVExA927HPjgmfnRY3EwEwosBNu2ofTs4WwyFBHqS"
 }
 
 成功响应格式：
@@ -158,6 +162,7 @@ API接口数据格式说明：
   "data": {
     "id": 1,
     "contract_address": "4fJVpHzgaQ5F5BmFWpLrVf7zdmkYJccgcz6XMQo1pump",
+    "dev_address": "M8CVExA927HPjgmfnRY3EwEwosBNu2ofTs4WwyFBHqS",
     "created_at": "2024-01-20T10:30:00Z",
     "updated_at": "2024-01-20T10:30:00Z"
   },
