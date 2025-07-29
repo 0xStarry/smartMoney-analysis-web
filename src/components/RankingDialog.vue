@@ -327,7 +327,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, defineProps, defineEmits, watch, triggerRef } from 'vue'
+import { ref, reactive, computed, watch, triggerRef } from 'vue'
 import { formatAddress, formatDate } from '../utils'
 import { getProfitRanking, getCountRanking, getPercentRanking, updateSmartMoneyAddress, deleteSmartMoneyAddress as deleteAddressAPI } from '../api/ranking'
 

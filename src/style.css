@@ -17,9 +17,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
-  color: #2c3e50;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #212529;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
   min-height: 100vh;
+}
+
+.v-theme--dark body {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
 #app {
@@ -39,24 +44,24 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.3);
+  background: rgba(0, 212, 255, 0.3);
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 126, 234, 0.5);
+  background: rgba(0, 212, 255, 0.5);
 }
 
 /* 选择文本样式 */
 ::selection {
-  background: rgba(102, 126, 234, 0.2);
-  color: #2c3e50;
+  background: rgba(0, 212, 255, 0.3);
+  color: #ffffff;
 }
 
 ::-moz-selection {
-  background: rgba(102, 126, 234, 0.2);
-  color: #2c3e50;
+  background: rgba(0, 212, 255, 0.3);
+  color: #ffffff;
 }
 
 /* 移动端优化 */
@@ -84,8 +89,8 @@ body {
 /* 高对比度模式支持 */
 @media (prefers-contrast: high) {
   body {
-    background: #fff;
-    color: #000;
+    background: #000;
+    color: #fff;
   }
 }
 

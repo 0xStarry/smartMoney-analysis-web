@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue'
+import { ref, computed } from 'vue'
 import { formatAddress } from '../utils'
 
 // 定义 props
@@ -190,15 +190,25 @@ defineExpose({
 .address-text {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   cursor: pointer;
-  color: #409eff;
+  color: #0066cc;
   font-weight: 500;
   transition: all 0.3s ease;
   font-size: 13px;
 }
 
 .address-text:hover {
-  color: #66b1ff;
+  color: #00aa44;
   text-decoration: underline;
+}
+
+.v-theme--dark .address-text {
+  color: #00d4ff;
+  text-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
+}
+
+.v-theme--dark .address-text:hover {
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .address-actions {
@@ -219,7 +229,12 @@ defineExpose({
 }
 
 .action-btn:hover {
-  color: #409eff;
+  color: #0066cc;
+  opacity: 1;
+}
+
+.v-theme--dark .action-btn:hover {
+  color: #00d4ff;
   opacity: 1;
 }
 
@@ -248,11 +263,21 @@ defineExpose({
 }
 
 .profit-positive {
-  color: #67c23a;
+  color: #198754;
 }
 
 .profit-negative {
-  color: #f56c6c;
+  color: #dc3545;
+}
+
+.v-theme--dark .profit-positive {
+  color: #00ff88;
+  text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+}
+
+.v-theme--dark .profit-negative {
+  color: #ff4757;
+  text-shadow: 0 0 5px rgba(255, 71, 87, 0.3);
 }
 
 .price-text {

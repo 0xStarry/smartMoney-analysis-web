@@ -1,5 +1,5 @@
 <template>
-  <v-card class="search-card mb-8" elevation="8" rounded="xl">
+  <v-card class="search-card mb-8" elevation="0" rounded="xl">
     <v-card-title class="d-flex justify-space-between align-center">
       <div class="d-flex align-center">
         <v-icon icon="mdi-magnify" color="primary" class="me-2" />
@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, defineProps, defineEmits } from 'vue'
+import { ref, reactive } from 'vue'
 
 // 定义 props
 const props = defineProps({
@@ -99,13 +99,17 @@ defineExpose({
 <style scoped>
 /* 搜索区域 */
 .search-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 102, 204, 0.2);
   transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 102, 204, 0.1);
 }
 
 .v-theme--dark .search-card {
-  background: rgba(30, 30, 30, 0.95);
+  background: rgba(26, 26, 46, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
 }
 
 .form-row {
@@ -133,15 +137,25 @@ defineExpose({
 }
 
 .search-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #0066cc 0%, #00aa44 100%);
+  color: #ffffff;
   font-weight: 600;
   transition: all 0.3s ease;
+  border: none;
 }
 
 .search-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+}
+
+.v-theme--dark .search-btn {
+  background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+  color: #0a0a0a;
+}
+
+.v-theme--dark .search-btn:hover {
+  box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
 }
 
 /* 响应式设计 */

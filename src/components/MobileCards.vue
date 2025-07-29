@@ -66,7 +66,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { computed } from 'vue'
 import { formatAddress } from '../utils'
 
 // 定义 props
@@ -162,12 +162,24 @@ defineExpose({
 }
 
 .mobile-card {
-  background: rgb(var(--v-theme-surface));
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 102, 204, 0.2);
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .mobile-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 102, 204, 0.2);
+}
+
+.v-theme--dark .mobile-card {
+  background: rgba(26, 26, 46, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.v-theme--dark .mobile-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
 }
 
 .mobile-card-header {
@@ -197,11 +209,21 @@ defineExpose({
 }
 
 .profit-positive {
-  color: #67c23a;
+  color: #198754;
 }
 
 .profit-negative {
-  color: #f56c6c;
+  color: #dc3545;
+}
+
+.v-theme--dark .profit-positive {
+  color: #00ff88;
+  text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+}
+
+.v-theme--dark .profit-negative {
+  color: #ff4757;
+  text-shadow: 0 0 5px rgba(255, 71, 87, 0.3);
 }
 
 .mobile-card-content {
@@ -210,9 +232,14 @@ defineExpose({
 
 .address-short {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: #409eff;
+  color: #0066cc;
   font-size: 12px;
   cursor: pointer;
+}
+
+.v-theme--dark .address-short {
+  color: #00d4ff;
+  text-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
 }
 
 .mobile-actions {

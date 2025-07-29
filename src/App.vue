@@ -5,9 +5,9 @@
       :color="theme.global.current.value.dark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)'" height="80">
       <v-container class="d-flex align-center justify-space-between pa-0">
         <div class="d-flex align-center">
-          <div class="logo-icon me-4">💎</div>
+          <div class="logo-icon me-4">🚀</div>
           <div>
-            <h1 class="logo-title">Solana钱包分析</h1>
+            <h1 class="logo-title">Smart Money Analytics</h1>
           </div>
         </div>
         <div class="d-flex align-center gap-2">
@@ -34,6 +34,9 @@
     <!-- 主内容区域 -->
     <v-main class="app-main">
       <v-container class="main-container">
+        <!-- 背景装饰 -->
+        <div class="bg-decoration"></div>
+        <div class="bg-decoration bg-decoration-2"></div>
         <!-- 搜索区域 -->
         <SearchForm 
           :loading="loading" 
@@ -42,7 +45,7 @@
         />
 
         <!-- 结果区域 -->
-        <v-card v-if="displayData.length > 0" class="result-card" elevation="8" rounded="xl">
+        <v-card v-if="displayData.length > 0" class="result-card" elevation="0" rounded="xl">
           <v-card-title class="result-header">
             <div class="d-flex align-center flex-wrap">
               <div class="d-flex align-center me-4">
@@ -251,30 +254,48 @@ const openDevRankingDialog = () => {
 /* 基础样式 */
 .app-header {
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 102, 204, 0.2);
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9) !important;
 }
 
 .v-theme--dark .app-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(26, 26, 46, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.3);
 }
 
 .logo-icon {
   font-size: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0066cc 0%, #00aa44 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.v-theme--dark .logo-icon {
+  background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
 .logo-title {
   margin: 0;
   font-size: 24px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0066cc 0%, #00aa44 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.v-theme--dark .logo-title {
+  background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
 .theme-btn {
@@ -283,37 +304,72 @@ const openDevRankingDialog = () => {
 }
 
 .theme-btn:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
   transform: rotate(180deg);
+}
+
+.v-theme--dark .theme-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  color: #00d4ff;
 }
 
 /* 主内容区域 */
 .app-main {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
   min-height: calc(100vh - 80px);
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .v-theme--dark .app-main {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
 .main-container {
   max-width: 1200px;
   padding: 30px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 背景装饰 */
+.bg-decoration {
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.bg-decoration-2 {
+  top: 60%;
+  right: 5%;
+  left: auto;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+  animation: float 8s ease-in-out infinite reverse;
 }
 
 /* 结果区域 */
 .result-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 102, 204, 0.2);
   animation: fadeInUp 0.6s ease-out;
   transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 102, 204, 0.1);
 }
 
 .v-theme--dark .result-card {
-  background: rgba(30, 30, 30, 0.95);
+  background: rgba(26, 26, 46, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
 }
 
 .result-header {
@@ -341,7 +397,7 @@ const openDevRankingDialog = () => {
 
 .ranking-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
 }
 
 .dev-ranking-btn {
@@ -350,7 +406,15 @@ const openDevRankingDialog = () => {
 
 .dev-ranking-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 170, 68, 0.4);
+}
+
+.v-theme--dark .ranking-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+.v-theme--dark .dev-ranking-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
 }
 
 /* 动画 */
@@ -362,6 +426,24 @@ const openDevRankingDialog = () => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.3));
+  }
+  to {
+    filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.6));
   }
 }
 

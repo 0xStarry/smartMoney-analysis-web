@@ -1,5 +1,5 @@
 <template>
-  <v-card class="empty-section text-center pa-8" elevation="8" rounded="xl">
+  <v-card class="empty-section text-center pa-8" elevation="0" rounded="xl">
     <div class="empty-icon mb-4">📊</div>
     <h3 class="empty-text mb-2">未找到相关数据</h3>
     <p class="empty-subtext mb-6">请检查合约地址是否正确</p>
@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import { defineEmits } from 'vue'
+// defineEmits 是编译器宏，无需导入
 
 // 定义 emits
 const emit = defineEmits(['retry'])
@@ -23,14 +23,18 @@ const retry = () => {
 
 <style scoped>
 .empty-section {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 102, 204, 0.2);
   animation: fadeIn 0.5s ease-out;
   transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 102, 204, 0.1);
 }
 
 .v-theme--dark .empty-section {
-  background: rgba(30, 30, 30, 0.95);
+  background: rgba(26, 26, 46, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
 }
 
 .empty-icon {
