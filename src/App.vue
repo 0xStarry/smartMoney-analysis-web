@@ -23,6 +23,12 @@
             <span class="btn-text">地址排行榜</span>
           </v-btn>
 
+          <!-- 精选聪明钱历史记录 -->
+          <v-btn color="warning" variant="outlined" prepend-icon="mdi-star-outline" @click="openHistoryDialog"
+            class="ranking-btn">
+            <span class="btn-text">精选聪明钱历史记录</span>
+          </v-btn>
+
           <!-- 主题切换按钮 -->
           <v-btn :icon="theme.global.current.value.dark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'"
             variant="text" @click="toggleTheme" class="theme-btn"
@@ -120,6 +126,13 @@
       ref="devRankingDialogRef"
     />
 
+    <!-- 精选聪明钱历史记录弹窗 -->
+    <SmartMoneyHistoryDialog 
+      v-model:visible="historyDialog" 
+      @show-message="showMessage"
+      ref="historyDialogRef"
+    />
+
     <!-- 加载遮罩 -->
     <v-overlay v-model="loading" class="align-center justify-center">
       <v-progress-circular color="primary" indeterminate size="64" />
@@ -150,6 +163,7 @@ import WelcomeSection from './components/WelcomeSection.vue'
 import EmptyState from './components/EmptyState.vue'
 import RankingDialog from './components/RankingDialog.vue'
 import DevRankingDialog from './components/DevRankingDialog.vue'
+import SmartMoneyHistoryDialog from './components/SmartMoneyHistoryDialog.vue'
 
 // 主题管理
 const theme = useTheme()
@@ -172,10 +186,12 @@ const {
 const searchFormRef = ref()
 const rankingDialogRef = ref()
 const devRankingDialogRef = ref()
+const historyDialogRef = ref()
 
 // 排行榜状态
 const rankingDialog = ref(false)
 const devRankingDialog = ref(false)
+const historyDialog = ref(false)
 
 // 消息提示
 const snackbar = reactive({
@@ -246,6 +262,14 @@ const openDevRankingDialog = () => {
   devRankingDialog.value = true
   if (devRankingDialogRef.value) {
     devRankingDialogRef.value.loadDevRankingData()
+  }
+}
+
+// 精选历史记录
+const openHistoryDialog = () => {
+  historyDialog.value = true
+  if (historyDialogRef.value) {
+    // 可选择性首次加载
   }
 }
 </script>

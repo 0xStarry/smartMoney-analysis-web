@@ -1,0 +1,286 @@
+<template>
+    <v-dialog v-model="visibleLocal" max-width="1200">
+        <v-card rounded="xl" elevation="0" class="history-card">
+            <v-card-title class="d-flex align-center justify-space-between">
+                <div class="d-flex align-center gap-2">
+                    <v-icon icon="mdi-star-outline" color="warning" class="me-2" />
+                    <span>精选聪明钱历史记录</span>
+                    <v-chip size="small" color="info" variant="flat">共有 {{ curatedWallets.length }} 个地址</v-chip>
+                    <v-chip size="small" color="success" variant="flat" v-if="filteredRows.length">筛后 {{
+                        filteredRows.length }} 条</v-chip>
+                </div>
+                <v-btn icon="mdi-close" variant="text" @click="visibleLocal = false" />
+            </v-card-title>
+
+            <v-card-text>
+                <v-row class="mb-4" align="center" no-gutters>
+                    <v-col cols="12" md="3" class="pe-md-2 mb-2 mb-md-0">
+                        <v-text-field v-model.number="minMcap" type="number" label="市值下限 (USD)" density="compact"
+                            variant="outlined" :hide-details="true" />
+                    </v-col>
+                    <v-col cols="12" md="3" class="px-md-2 mb-2 mb-md-0">
+                        <v-select :items="tradeOptions" v-model="selectedTradeTypes" label="交易类型" multiple chips
+                            density="compact" variant="outlined" :hide-details="true" />
+                    </v-col>
+                    <v-col cols="12" md="3" class="px-md-2 mb-2 mb-md-0">
+                        <v-select :items="pageSizes" v-model="pageSize" label="每个地址拉取条数" density="compact"
+                            variant="outlined" :hide-details="true" />
+                    </v-col>
+                    <v-col cols="12" md="3" class="ps-md-2 d-flex gap-2">
+                        <v-text-field v-model.number="recentDays" type="number" label="最近N天" density="compact"
+                            variant="outlined" :hide-details="true" min="1" />
+                        <v-btn color="primary" prepend-icon="mdi-refresh" :loading="loading" @click="fetchAll">
+                            刷新数据
+                        </v-btn>
+                    </v-col>
+                </v-row>
+
+                <v-alert type="info" variant="tonal" class="mb-4">
+                    默认展示 Solana (chainId=501) 的买卖记录。根据市值阈值过滤后，按时间倒序展示。
+                </v-alert>
+
+                <v-data-table :headers="headers" :items="filteredRows" :loading="loading" :items-per-page="-1"
+                    hide-default-footer class="history-table">
+                    <template #[`item.time`]="{ item }">
+                        <span>{{ item.timeFormatted }} · {{ item.relativeTime }}</span>
+                    </template>
+                    <template #[`item.token`]="{ item }">
+                        <div class="d-flex align-center gap-2">
+                            <v-avatar size="20">
+                                <v-img :src="item.tokenLogo" alt="logo" />
+                            </v-avatar>
+                            <span>{{ item.tokenSymbol }}</span>
+                        </div>
+                    </template>
+                    <template #[`item.tokenContractAddress`]="{ item }">
+                        <a :href="`https://dexscreener.com/solana/${item.tokenContractAddress}`" target="_blank"
+                            class="addr-link">{{ formatAddress(item.tokenContractAddress) }}</a>
+                    </template>
+                    <template #[`item.walletAddress`]="{ item }">
+                        <a :href="`https://solscan.io/account/${item.walletAddress}`" target="_blank"
+                            class="addr-link">{{ formatAddress(item.walletAddress) }}</a>
+                    </template>
+                    <template #[`item.mcap`]="{ item }">${{ formatNumber(toFixedNumber(item.mcap)) }}</template>
+                    <template #[`item.turnover`]="{ item }">${{ formatNumber(toFixedNumber(item.turnover)) }}</template>
+                    <template #[`item.type`]="{ item }">
+                        <v-chip :color="item.type === 1 ? 'success' : 'error'" size="small" variant="flat">{{ item.type
+                            === 1 ? '买入' : '卖出' }}</v-chip>
+                    </template>
+                    <template #[`item.tx`]="{ item }">
+                        <v-btn size="small" variant="text" :href="item.openLink" target="_blank"
+                            prepend-icon="mdi-open-in-new">TX</v-btn>
+                    </template>
+                </v-data-table>
+            </v-card-text>
+        </v-card>
+    </v-dialog>
+
+</template>
+
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { contractAPI } from '@/api/index.js'
+import { formatAddress, formatNumber, formatSolanaBlockTimeToUTC8, formatRelativeTime } from '@/utils/index.js'
+
+const props = defineProps({
+    visible: { type: Boolean, default: false }
+})
+
+const emit = defineEmits(['update:visible', 'show-message'])
+
+const visibleLocal = computed({
+    get: () => props.visible,
+    set: (v) => emit('update:visible', v)
+})
+
+// 本地精选地址（可替换为你的地址列表）
+const curatedWallets = ref([
+    '9yYya3F5EJoLnBNKW6z4bZvyQytMXzDcpU5D6yYr4jqL',
+    '7azv99nzG6KYzkAP3uTN7trfUFtEqzXw1Pxy8MsR8R6P',
+    'HUzZ1MrEUXrdPJoAnn5B8uTcshwyyXxFW1EqY2dvcVhe',
+    'winkACDSxstg19HJgX1pwDGpD8f2ZpiqqAjyAbkgXLu',
+    '5h7yzwmrGoG2BmxNCqNR2EnSv1LWCFo7n6SKSh5ZWkfE',
+    'HdxkiXqeN6qpK2YbG51W23QSWj3Yygc1eEk2zwmKJExp',
+    'FTg1gqW7vPm4kdU1LPM7JJnizbgPdRDy2PitKw6mY27j',
+    'DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm',
+    '215nhcAHjQQGgwpQSJQ7zR26etbjjtVdW74NLzwEgQjP',
+    'EfwJn8cXCYhcGrsavxWSDbUFHPrCK9gvdCr6AVywFBPg',
+    '3qAKQ1c6gawUVNheSBmUVhMgKg7EqT1aHw72ZKmC8Jmk',
+    '3JbCsBJbRncrJbwmKYo5ww3uMuRgZ2LkS9LY7pZxu5v1',
+    'Ay9wnuZCRTceZJuRpGZnuwYZuWdsviM4cMiCwFoSQiPH',
+    '42cfcPtPRHN6YQkWMzFhD9N67XWNZnAARYdMoR7RjsLX',
+    '2m5498hY3hpSvm1pVyZwwyU6bpQGFGu3PADSoEoZFXQB',
+    '45yBcpnzFTqLYQJtjxsa1DdZkgrTYponCg6yLQ6LQPu6',
+    '8zFZHuSRuDpuAR7J6FzwyF3vKNx4CVW3DFHJerQhc7Zd',
+    'CWvdyvKHEu8Z6QqGraJT3sLPyp9bJfFhoXcxUYRKC8ou',
+    'D6nUhQ7o3TQwk243mgVS5hsdkuJk71fxZib3KxY4Upyv',
+    'G1pRtSyKuWSjTqRDcazzKBDzqEF96i1xSURpiXj3yFcc',
+    'HaZtFxgw99iM97LxmwFuDW6k4MP1XwsWTGoy7GUoSELj',
+    'A4DCAjDwkq5jYhNoZ5Xn2NbkTLimARkerVv81w2dhXgL',
+    '9688Erg7hv2HwdJjRR5Q1VSMbur7T6X6LuFat1R8o9Gr',
+    '71CPXu3TvH3iUKaY1bNkAAow24k6tjH473SsKprQBABC',
+    'DScqtGwFoDTme2Rzdjpdb2w7CtuKc6Z8KF7hMhbx8ugQ',
+    '8T9mnATndr2aUw9r28uTtxKSh2JfqJwrctW6XaWPHTgy',
+    '8yJFWmVTQq69p6VJxGwpzW7ii7c5J9GRAtHCNMMQPydj',
+    'AVAZvHLR2PcWpDf8BXY4rVxNHYRBytycHkcB5z5QNXYm',
+    'GFJhtZuENEB9StZiacHUd1aoBoCtY2wWLskhgwcyfaYN',
+    '3rSZJHysEk2ueFVovRLtZ8LGnQBMZGg96H2Q4jErspAF',
+    '4Be9CvxqHW6BYiRAxW9Q3xu1ycTMWaL5z8NX4HR3ha7t'
+])
+
+
+const minMcap = ref(500000)
+const selectedTradeTypes = ref([1])
+const tradeOptions = [
+    { title: '买入', value: 1 },
+    { title: '卖出', value: 2 }
+]
+const pageSizes = [50, 100, 200]
+const pageSize = ref(100)
+const recentDays = ref(3)
+
+const loading = ref(false)
+const rows = ref([])
+
+const headers = [
+    { title: '时间(UTC+8)', key: 'time', align: 'start', width: 170 },
+    { title: '类型', key: 'type', align: 'center', width: 80 },
+    { title: '代币', key: 'token', align: 'start', width: 160 },
+    { title: '代币地址', key: 'tokenContractAddress', align: 'start', width: 220 },
+    { title: '成交额', key: 'turnover', align: 'end', width: 120 },
+    { title: '市值', key: 'mcap', align: 'end', width: 140 },
+    { title: '钱包', key: 'walletAddress', align: 'start', width: 220 },
+    { title: '交易', key: 'tx', align: 'center', width: 80 }
+]
+
+const toFixedNumber = (val) => {
+    const num = parseFloat(val)
+    if (isNaN(num)) return 0
+    return Math.round(num)
+}
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+const isTooManyRequestsError = (e) => {
+    const msg = e?.message || ''
+    const resMsg = e?.response?.data?.msg || e?.response?.data?.detailMsg || ''
+    return e?.response?.status === 429 || /too many requests/i.test(msg) || /too many requests/i.test(resMsg)
+}
+
+const getWalletHistoryWithRetry = async (params, retries = 3, baseDelayMs = 600) => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            return await contractAPI.getWalletTradeHistory(params)
+        } catch (e) {
+            if (attempt < retries && isTooManyRequestsError(e)) {
+                const backoff = baseDelayMs * Math.pow(2, attempt)
+                await sleep(backoff)
+                continue
+            }
+            throw e
+        }
+    }
+}
+
+const filteredRows = computed(() => {
+    const min = Number(minMcap.value) || 0
+    const days = Number(recentDays.value) || 0
+    const threshold = days > 0 ? Date.now() - days * 24 * 60 * 60 * 1000 : 0
+    return rows.value
+        .filter(r => selectedTradeTypes.value.includes(r.type))
+        .filter(r => (parseFloat(r.mcap) || 0) >= min)
+        .filter(r => (Number(r.blockTime) || 0) >= threshold)
+        .sort((a, b) => b.blockTime - a.blockTime)
+})
+
+const mapRow = (raw, walletAddress, tradeType) => ({
+    timeFormatted: formatSolanaBlockTimeToUTC8(raw.blockTime),
+    blockTime: Number(raw.blockTime),
+    relativeTime: formatRelativeTime(raw.blockTime),
+    tokenContractAddress: raw.tokenContractAddress,
+    tokenSymbol: raw.tokenSymbol,
+    tokenLogo: raw.tokenLogo,
+    turnover: raw.turnover,
+    mcap: raw.mcap,
+    type: tradeType,
+    openLink: raw.openLink,
+    walletAddress
+})
+
+const fetchForWallet = async (wallet) => {
+    const results = []
+    const types = selectedTradeTypes.value.length ? selectedTradeTypes.value : [1, 2]
+    for (const t of types) {
+        const res = await getWalletHistoryWithRetry({ walletAddress: wallet, chainId: '501', pageSize: pageSize.value, tradeType: t })
+        if (res && res.data && Array.isArray(res.data.rows)) {
+            for (const r of res.data.rows) {
+                results.push(mapRow(r, wallet, t))
+            }
+        }
+        // 请求之间添加小延迟，进一步降低触发限频概率
+        await sleep(250)
+    }
+    return results
+}
+
+const fetchAll = async () => {
+    if (!curatedWallets.value.length) {
+        emit('show-message', '地址列表为空，请先配置精选地址', 'warning')
+        return
+    }
+    loading.value = true
+    rows.value = []
+    try {
+        // 顺序获取所有地址数据，控制请求速率，最终一次性渲染
+        const aggregated = []
+        for (const wallet of curatedWallets.value) {
+            const list = await fetchForWallet(wallet)
+            aggregated.push(...list)
+            // 地址之间增加延迟
+            await sleep(200)
+        }
+        rows.value = aggregated
+        emit('show-message', `拉取完成，共 ${aggregated.length} 条`, 'success')
+    } catch (e) {
+        emit('show-message', e?.message || '拉取失败', 'error')
+    } finally {
+        loading.value = false
+    }
+}
+
+
+watch(() => props.visible, (v) => {
+    if (v && !rows.value.length) {
+        // 自动首次拉取
+        fetchAll()
+    }
+})
+
+defineExpose({ fetchAll })
+</script>
+
+<style scoped>
+.history-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 102, 204, 0.2);
+}
+
+.v-theme--dark .history-card {
+    background: rgba(26, 26, 46, 0.9);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.addr-link {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.v-theme--dark .addr-link {
+    color: #00d4ff;
+}
+
+.history-table {
+    background: transparent;
+}
+</style>

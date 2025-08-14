@@ -94,6 +94,20 @@ export const contractAPI = {
         walletAddress: walletAddress
       }
     })
+  },
+
+  // 获取钱包买卖交易历史（tradeType: 1=买入, 2=卖出）
+  getWalletTradeHistory: ({ walletAddress, chainId = '501', pageSize = 200, tradeType = 1 }) => {
+    return service({
+      url: '/priapi/v1/dx/market/v2/pnl/wallet-profile/trade-history',
+      method: 'get',
+      params: {
+        walletAddress,
+        chainId,
+        pageSize,
+        tradeType
+      }
+    })
   }
 }
 

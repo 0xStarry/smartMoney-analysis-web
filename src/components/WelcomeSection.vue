@@ -1,8 +1,9 @@
 <template>
   <v-card class="welcome-section text-center pa-8" elevation="0" rounded="xl">
     <div class="welcome-icon mb-4">🚀</div>
-    <h2 class="welcome-title mb-4">欢迎十三老师回来上班</h2>
+    <h2 class="welcome-title mb-4">欢迎十三老师和洋爹回来上班</h2>
     <p class="welcome-desc mb-6">今天也是充满暴击的一天！</p>
+    <p class="welcome-desc mb-6">苟富贵！勿相忘！</p>
     <v-row class="feature-list justify-center">
       <v-col cols="auto" class="feature-item">
         <v-icon icon="mdi-chart-line" color="success" size="24" class="mb-2" />
