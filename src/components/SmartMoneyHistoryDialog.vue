@@ -5,7 +5,18 @@
                 <div class="d-flex align-center gap-2">
                     <v-icon icon="mdi-star-outline" color="warning" class="me-2" />
                     <span>精选聪明钱历史记录</span>
-                    <v-chip size="small" color="info" variant="flat">共有 {{ curatedWallets.length }} 个地址</v-chip>
+                    <v-menu open-on-hover location="bottom">
+                        <template #activator="{ props }">
+                            <v-chip v-bind="props" size="small" color="info" variant="flat">共有 {{ curatedWallets.length }} 个地址</v-chip>
+                        </template>
+                        <v-card class="addr-popover" elevation="2">
+                            <div class="addr-grid">
+                                <div v-for="addr in curatedWallets" :key="addr" class="addr-item monospace" :title="addr">
+                                    {{ formatAddress(addr) }}
+                                </div>
+                            </div>
+                        </v-card>
+                    </v-menu>
                     <v-chip size="small" color="success" variant="flat" v-if="filteredRows.length">筛后 {{
                         filteredRows.length }} 条</v-chip>
                 </div>
@@ -36,7 +47,7 @@
                 </v-row>
 
                 <v-alert type="info" variant="tonal" class="mb-4">
-                    默认展示 Solana (chainId=501) 的买卖记录。根据市值阈值过滤后，按时间倒序展示。
+                    展示 Solana (chainId=501) 的买卖记录。根据市值阈值过滤后，按时间倒序展示。
                 </v-alert>
 
                 <v-row class="mb-4" align="center" no-gutters>
@@ -48,8 +59,9 @@
                     </v-col>
                 </v-row>
 
-                <v-data-table :headers="headers" :items="filteredRows" :loading="loading" :items-per-page="-1"
-                    hide-default-footer class="history-table">
+                <v-data-table :headers="headers" :items="groupedRows" :loading="loading" :items-per-page="-1"
+                    hide-default-footer class="history-table" show-expand v-model:expanded="expanded" :single-expand="true" :item-value="'groupKey'"
+                    density="comfortable" fixed-header height="60vh">
                     <template #[`item.time`]="{ item }">
                         <span>{{ item.timeFormatted }} · {{ item.relativeTime }}</span>
                     </template>
@@ -62,22 +74,55 @@
                         </div>
                     </template>
                     <template #[`item.tokenContractAddress`]="{ item }">
-                        <a :href="`https://dexscreener.com/solana/${item.tokenContractAddress}`" target="_blank"
-                            class="addr-link">{{ formatAddress(item.tokenContractAddress) }}</a>
+                        <div class="addr-cell">
+                            <a :href="`https://dexscreener.com/solana/${item.tokenContractAddress}`" target="_blank"
+                                class="addr-link" :title="item.tokenContractAddress">{{ formatAddress(item.tokenContractAddress) }}</a>
+                        </div>
                     </template>
                     <template #[`item.walletAddress`]="{ item }">
-                        <a :href="`https://solscan.io/account/${item.walletAddress}`" target="_blank"
-                            class="addr-link">{{ formatAddress(item.walletAddress) }}</a>
+                        <div class="addr-cell">
+                            <a :href="`https://solscan.io/account/${item.walletAddress}`" target="_blank"
+                                class="addr-link" :title="item.walletAddress">{{ formatAddress(item.walletAddress) }}</a>
+                        </div>
                     </template>
-                    <template #[`item.mcap`]="{ item }">${{ formatNumber(toFixedNumber(item.mcap)) }}</template>
-                    <template #[`item.turnover`]="{ item }">${{ formatNumber(toFixedNumber(item.turnover)) }}</template>
+                    <template #[`item.mcap`]="{ item }"><span class="numeric monospace">${{ formatNumber(toFixedNumber(item.mcap)) }}</span></template>
+                    <template #[`item.turnover`]="{ item }"><span class="numeric monospace">${{ formatNumber(toFixedNumber(item.turnover)) }}</span></template>
                     <template #[`item.type`]="{ item }">
-                        <v-chip :color="item.type === 1 ? 'success' : 'error'" size="small" variant="flat">{{ item.type
-                            === 1 ? '买入' : '卖出' }}</v-chip>
+                        <v-chip :color="getTypeColor(item.type)" size="small" variant="flat">{{ getTypeText(item.type) }}</v-chip>
                     </template>
                     <template #[`item.tx`]="{ item }">
-                        <v-btn size="small" variant="text" :href="item.openLink" target="_blank"
+                        <v-btn v-if="!item.isGroup" size="small" variant="text" :href="item.openLink" target="_blank"
                             prepend-icon="mdi-open-in-new">TX</v-btn>
+                    </template>
+                    <template #expanded-row="{ item }">
+                        <td :colspan="headers.length" class="pa-0">
+                            <div class="expanded-wrap">
+                                <v-table density="compact" class="expanded-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">时间</th>
+                                            <th class="text-center">类型</th>
+                                            <th class="text-right">成交额</th>
+                                            <th class="text-right">市值</th>
+                                            <th class="text-center">交易</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="child in item.children" :key="child.openLink">
+                                            <td class="text-left">{{ child.timeFormatted }} · {{ child.relativeTime }}</td>
+                                            <td class="text-center">
+                                                <v-chip :color="getTypeColor(child.type)" size="x-small" variant="flat">{{ getTypeText(child.type) }}</v-chip>
+                                            </td>
+                                            <td class="text-right">${{ formatNumber(toFixedNumber(child.turnover)) }}</td>
+                                            <td class="text-right">${{ formatNumber(toFixedNumber(child.mcap)) }}</td>
+                                            <td class="text-center">
+                                                <v-btn size="x-small" variant="text" :href="child.openLink" target="_blank" prepend-icon="mdi-open-in-new">TX</v-btn>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </v-table>
+                            </div>
+                        </td>
                     </template>
                 </v-data-table>
             </v-card-text>
@@ -147,6 +192,8 @@ const tradeOptions = [
 const pageSizes = [50, 100, 200]
 const pageSize = ref(100)
 const recentDays = ref(3)
+const groupByToken = ref(true)
+const expanded = ref([])
 
 const loading = ref(false)
 const rows = ref([])
@@ -168,8 +215,59 @@ const headers = [
     { title: '成交额', key: 'turnover', align: 'end', width: 120 },
     { title: '市值', key: 'mcap', align: 'end', width: 140 },
     { title: '钱包', key: 'walletAddress', align: 'start', width: 220 },
-    { title: '交易', key: 'tx', align: 'center', width: 80 }
+    // { title: '交易', key: 'tx', align: 'center', width: 80 }
 ]
+
+// 分组逻辑
+const groupedRows = computed(() => {
+    const groups = new Map()
+    for (const row of filteredRows.value) {
+        const groupKey = `${row.walletAddress}_${row.tokenContractAddress}`
+        if (!groups.has(groupKey)) {
+            groups.set(groupKey, {
+                ...row,
+                isGroup: true,
+                children: [],
+                totalTurnover: 0,
+                groupKey
+            })
+        }
+        const group = groups.get(groupKey)
+        group.children.push(row)
+        group.totalTurnover += (parseFloat(row.turnover) || 0)
+    }
+    return Array.from(groups.values()).map(group => {
+        group.children.sort((a, b) => b.blockTime - a.blockTime)
+        const latest = group.children[0]
+        const types = [...new Set(group.children.map(c => c.type))]
+        const mixedType = types.length > 1 ? 'mixed' : types[0]
+        return {
+            ...group,
+            timeFormatted: latest.timeFormatted,
+            relativeTime: latest.relativeTime,
+            blockTime: latest.blockTime,
+            turnover: group.totalTurnover,
+            mcap: latest.mcap,
+            type: mixedType
+        }
+    }).sort((a, b) => b.blockTime - a.blockTime)
+})
+
+const displayItems = computed(() => {
+    return groupByToken.value ? groupedRows.value : filteredRows.value
+})
+
+const getTypeColor = (type) => {
+    if (type === 1) return 'success'
+    if (type === 2) return 'error'
+    return 'warning'
+}
+
+const getTypeText = (type) => {
+    if (type === 1) return '买入'
+    if (type === 2) return '卖出'
+    return '混合'
+}
 
 const toFixedNumber = (val) => {
     const num = parseFloat(val)
@@ -302,5 +400,65 @@ defineExpose({ fetchAll })
 
 .history-table {
     background: transparent;
+}
+
+.history-table :deep(.v-data-table__th) {
+    white-space: nowrap;
+}
+
+.addr-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.monospace {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.numeric {
+    text-align: right;
+}
+
+.expanded-wrap {
+    background: rgba(0,0,0,0.02);
+}
+
+.v-theme--dark .expanded-wrap {
+    background: rgba(255,255,255,0.03);
+}
+
+.expanded-table {
+    width: 100%;
+}
+
+.expanded-table thead th {
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.expanded-table tbody tr:hover {
+    background: rgba(0,0,0,0.03);
+}
+
+.v-theme--dark .expanded-table tbody tr:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.addr-popover {
+    padding: 8px 12px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.addr-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    gap: 8px 16px;
+}
+
+.addr-item {
+    color: rgb(var(--v-theme-on-surface));
+    opacity: 0.85;
 }
 </style>
