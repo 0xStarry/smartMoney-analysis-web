@@ -39,6 +39,15 @@
                     默认展示 Solana (chainId=501) 的买卖记录。根据市值阈值过滤后，按时间倒序展示。
                 </v-alert>
 
+                <v-row class="mb-4" align="center" no-gutters>
+                    <v-col cols="12">
+                        <div class="d-flex align-center gap-4">
+                            <div class="me-4">进度：{{ completedRequests }} / {{ totalRequests }}（{{ progress }}%）</div>
+                            <v-progress-linear :model-value="progress" height="10" rounded color="primary" style="flex:1" />
+                        </div>
+                    </v-col>
+                </v-row>
+
                 <v-data-table :headers="headers" :items="filteredRows" :loading="loading" :items-per-page="-1"
                     hide-default-footer class="history-table">
                     <template #[`item.time`]="{ item }">
@@ -141,9 +150,18 @@ const recentDays = ref(3)
 
 const loading = ref(false)
 const rows = ref([])
+const completedRequests = ref(0)
+const totalRequests = computed(() => {
+    const typeCount = (selectedTradeTypes.value && selectedTradeTypes.value.length) ? selectedTradeTypes.value.length : 2
+    return curatedWallets.value.length * typeCount
+})
+const progress = computed(() => {
+    if (!totalRequests.value) return 0
+    return Math.min(100, Math.round((completedRequests.value / totalRequests.value) * 100))
+})
 
 const headers = [
-    { title: '时间(UTC+8)', key: 'time', align: 'start', width: 170 },
+    { title: '时间', key: 'time', align: 'start', width: 170 },
     { title: '类型', key: 'type', align: 'center', width: 80 },
     { title: '代币', key: 'token', align: 'start', width: 160 },
     { title: '代币地址', key: 'tokenContractAddress', align: 'start', width: 220 },
@@ -217,6 +235,7 @@ const fetchForWallet = async (wallet) => {
                 results.push(mapRow(r, wallet, t))
             }
         }
+        completedRequests.value += 1
         // 请求之间添加小延迟，进一步降低触发限频概率
         await sleep(250)
     }
@@ -230,6 +249,7 @@ const fetchAll = async () => {
     }
     loading.value = true
     rows.value = []
+    completedRequests.value = 0
     try {
         // 顺序获取所有地址数据，控制请求速率，最终一次性渲染
         const aggregated = []
