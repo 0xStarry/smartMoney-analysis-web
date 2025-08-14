@@ -60,6 +60,37 @@ const vuetify = createVuetify({
       },
     },
   },
+  defaults: {
+    VBtn: {
+      rounded: 'lg',
+      elevation: 0,
+      class: 'text-none font-weight-bold',
+    },
+    VTextField: {
+      density: 'comfortable',
+      variant: 'outlined',
+      hideDetails: 'auto',
+      rounded: 'lg',
+    },
+    VSelect: {
+      density: 'comfortable',
+      variant: 'outlined',
+      hideDetails: 'auto',
+      rounded: 'lg',
+      menuProps: { maxHeight: 320 },
+    },
+    VCard: {
+      rounded: 'xl',
+      elevation: 0,
+    },
+    VChip: {
+      rounded: 'lg',
+    },
+    VDataTable: {
+      density: 'comfortable',
+      hover: true,
+    },
+  },
 })
 
 const app = createApp(App)

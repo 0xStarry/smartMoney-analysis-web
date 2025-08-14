@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="visibleLocal" max-width="1200">
+    <v-dialog v-model="visibleLocal" max-width="1200" transition="dialog-bottom-transition">
         <v-card rounded="xl" elevation="0" class="history-card">
             <v-card-title class="d-flex align-center justify-space-between">
                 <div class="d-flex align-center gap-2">

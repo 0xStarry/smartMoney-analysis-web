@@ -1,7 +1,7 @@
 <template>
   <!-- 排行榜弹窗 -->
-  <v-dialog v-model="dialogVisible" max-width="1200" scrollable>
-    <v-card class="ranking-dialog">
+  <v-dialog v-model="dialogVisible" max-width="1200" scrollable transition="dialog-bottom-transition">
+    <v-card class="ranking-dialog" rounded="xl" elevation="0">
       <v-card-title class="d-flex align-center justify-space-between">
         <div class="d-flex align-center">
           <v-icon icon="mdi-trophy" color="warning" class="me-2" />

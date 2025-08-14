@@ -166,6 +166,23 @@ defineExpose({
   background: transparent;
 }
 
+.data-table :deep(table) {
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+
+.data-table :deep(tbody > tr) {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.data-table :deep(tbody > tr:hover) {
+  background-color: rgba(0, 102, 204, 0.06);
+}
+
+.v-theme--dark .data-table :deep(tbody > tr:hover) {
+  background-color: rgba(0, 212, 255, 0.08);
+}
+
 .rank-cell {
   display: flex;
   align-items: center;

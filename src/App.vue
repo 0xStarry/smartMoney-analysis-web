@@ -340,15 +340,11 @@ const openHistoryDialog = () => {
 
 /* 主内容区域 */
 .app-main {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+  background: transparent;
   min-height: calc(100vh - 80px);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-}
-
-.v-theme--dark .app-main {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
 .main-container {
@@ -365,7 +361,7 @@ const openHistoryDialog = () => {
   left: 5%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.06) 0%, transparent 70%);
   border-radius: 50%;
   animation: float 6s ease-in-out infinite;
 }
@@ -374,9 +370,9 @@ const openHistoryDialog = () => {
   top: 60%;
   right: 5%;
   left: auto;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(0, 255, 136, 0.06) 0%, transparent 70%);
   animation: float 8s ease-in-out infinite reverse;
 }
 
@@ -402,6 +398,8 @@ const openHistoryDialog = () => {
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 /* 桌面端表格 */
