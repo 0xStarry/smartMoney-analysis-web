@@ -151,7 +151,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useTheme } from 'vuetify'
 import { useSmartMoneyApp } from './composables/useSmartMoneyApp'
 
@@ -207,9 +207,35 @@ const showMessage = (text, color = 'success') => {
   snackbar.show = true
 }
 
+// 主题初始化和记忆功能
+const THEME_KEY = 'smartmoney-theme-preference'
+
+// 初始化主题（从localStorage读取用户偏好）
+const initializeTheme = () => {
+  try {
+    const savedTheme = localStorage.getItem(THEME_KEY)
+    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+      theme.global.name.value = savedTheme
+    }
+  } catch (error) {
+    console.error('读取主题偏好失败:', error)
+  }
+}
+
+// 保存主题偏好到localStorage
+const saveThemePreference = (themeName) => {
+  try {
+    localStorage.setItem(THEME_KEY, themeName)
+  } catch (error) {
+    console.error('保存主题偏好失败:', error)
+  }
+}
+
 // 主题切换
 const toggleTheme = () => {
-  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+  const newTheme = theme.global.current.value.dark ? 'light' : 'dark'
+  theme.global.name.value = newTheme
+  saveThemePreference(newTheme)
   showMessage(`已切换到${theme.global.current.value.dark ? '暗色' : '亮色'}模式`, 'success')
 }
 
@@ -272,6 +298,11 @@ const openHistoryDialog = () => {
     // 可选择性首次加载
   }
 }
+
+// 组件挂载时初始化主题
+onMounted(() => {
+  initializeTheme()
+})
 </script>
 
 <style scoped>
