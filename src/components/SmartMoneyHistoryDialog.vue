@@ -191,7 +191,8 @@ const curatedWallets = ref([
     'AVAZvHLR2PcWpDf8BXY4rVxNHYRBytycHkcB5z5QNXYm',
     'GFJhtZuENEB9StZiacHUd1aoBoCtY2wWLskhgwcyfaYN',
     '3rSZJHysEk2ueFVovRLtZ8LGnQBMZGg96H2Q4jErspAF',
-    '4Be9CvxqHW6BYiRAxW9Q3xu1ycTMWaL5z8NX4HR3ha7t'
+    '4Be9CvxqHW6BYiRAxW9Q3xu1ycTMWaL5z8NX4HR3ha7t',
+    'HYWo71Wk9PNDe5sBaRKazPnVyGnQDiwgXCFKvgAQ1ENp'
 ])
 
 
