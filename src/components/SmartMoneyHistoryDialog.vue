@@ -77,6 +77,8 @@
                         <div class="addr-cell">
                             <a :href="`https://dexscreener.com/solana/${item.tokenContractAddress}`" target="_blank"
                                 class="addr-link" :title="item.tokenContractAddress">{{ formatAddress(item.tokenContractAddress) }}</a>
+                            <v-btn icon="mdi-content-copy" variant="text" size="small" @click="copyAddress(item.tokenContractAddress)"
+                                class="copy-btn" :title="`复制 ${item.tokenContractAddress}`" />
                         </div>
                     </template>
                     <template #[`item.walletAddress`]="{ item }">
@@ -141,6 +143,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:visible', 'show-message'])
+
+// 复制地址到剪贴板
+const copyAddress = async (address) => {
+    try {
+        await navigator.clipboard.writeText(address)
+        emit('show-message', '地址已复制到剪贴板', 'success')
+    } catch (err) {
+        emit('show-message', '复制失败，请手动复制', 'error')
+    }
+}
 
 const visibleLocal = computed({
     get: () => props.visible,
@@ -410,6 +422,22 @@ defineExpose({ fetchAll })
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.copy-btn {
+    color: rgb(var(--v-theme-on-surface));
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+    color: #0066cc;
+    opacity: 1;
+}
+
+.v-theme--dark .copy-btn:hover {
+    color: #00d4ff;
+    opacity: 1;
 }
 
 .monospace {
